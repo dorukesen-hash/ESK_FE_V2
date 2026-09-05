@@ -1,8 +1,8 @@
 export default function HomePage() {
   return (
-    <main>
-      <h1>ESK Packaging</h1>
-      <p>Storefront scaffold — home page placeholder.</p>
+    <main className="p-8">
+      <h1 className="text-2xl font-semibold">ESK Packaging</h1>
+      <p className="text-slate-600">Storefront scaffold — home page placeholder.</p>
     </main>
   );
 }
