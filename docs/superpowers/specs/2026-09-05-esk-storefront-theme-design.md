@@ -60,7 +60,8 @@ Dark mode kapsama alındığı için (kullanıcı kararı: toggle butonlu light+
 | `--color-text-muted` | `#808080` | `#9BA3AC` *(türetilmiş)* | ikincil metin, açıklama, placeholder |
 | `--color-border` | `#BDC2C7` | `#33475E` *(türetilmiş)* | kart/input/divider kenarlıkları |
 | `--color-primary` | `#2A6AA2` | `#5CA0E2` | dark modda kontrast için daha açık mavi tercih edildi |
-| `--color-primary-hover` | `#1F5480` *(türetilmiş)* | `#2A6AA2` | dark modda mevcut light-primary rengi hover için yeniden kullanılıyor |
+| `--color-primary-hover` | `#1F5480` *(türetilmiş)* | `#7DB4E9` *(türetilmiş, revize)* | **Revizyon (2026-09-05):** dark modda önceki değer (`#2A6AA2`, light-primary'nin yeniden kullanımı) `primary` ile birlikte tek bir metin rengiyle kullanılamıyordu (WCAG AA başarısız — beyaz metin hover'da 2.76:1). Hover artık base'den **daha açık** bir mavi — böylece her iki state'te de aynı koyu metin rengi (`--color-primary-foreground`) kullanılabiliyor. |
+| `--color-primary-foreground` *(yeni)* | `#FFFFFF` | `#182434` | `primary`/`primary-hover` üzerinde kullanılacak metin rengi — her iki state'te de aynı token, mode'a göre değişir (light modda beyaz, dark modda koyu lacivert — `text-primary`'nin karşıt mode'daki değeriyle aynı). |
 | `--color-accent-tint` | `#E7F2FD` | `#1C3350` *(türetilmiş)* | hover/selected arka planı |
 | `--color-accent-tint-strong` | `#CFE6FC` | `#24466B` *(türetilmiş)* | badge, tablo başlığı arka planı |
 | `--color-button-secondary-bg` | `#ECECEC` | `#2A3B4F` *(türetilmiş)* | ikincil buton zemini |

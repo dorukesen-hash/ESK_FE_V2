@@ -12,6 +12,7 @@
   --color-border: #bdc2c7;
   --color-primary: #2a6aa2;
   --color-primary-hover: #1f5480;
+  --color-primary-foreground: #ffffff;
   --color-accent-tint: #e7f2fd;
   --color-accent-tint-strong: #cfe6fc;
   --color-button-secondary-bg: #ececec;
@@ -35,7 +36,8 @@
   --color-text-muted: #9ba3ac;
   --color-border: #33475e;
   --color-primary: #5ca0e2;
-  --color-primary-hover: #2a6aa2;
+  --color-primary-hover: #7db4e9;
+  --color-primary-foreground: #182434;
   --color-accent-tint: #1c3350;
   --color-accent-tint-strong: #24466b;
   --color-button-secondary-bg: #2a3b4f;
