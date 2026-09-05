@@ -57,8 +57,8 @@ app/
     account/invoices/page.js
 
 components/
-  ui/Button.js, ui/Button.test.jsx
-  ui/Modal.js, ui/Modal.test.jsx
+  ui/Button.jsx, ui/Button.test.jsx
+  ui/Modal.jsx, ui/Modal.test.jsx
   layout/AuthGuard.js, layout/AuthGuard.test.jsx
 
 lib/
@@ -598,7 +598,7 @@ git commit -m "Add refresh-queue dedup helper for 401 handling"
 
 **Interfaces:**
 - Consumes: `createRefreshQueue` from `lib/refreshQueue.js` (Task 5).
-- Produces: `api` (axios instance, `withCredentials: true`, base URL from `NEXT_PUBLIC_API_URL`), the default export used by every future data-fetching hook.
+- Produces: `api` (axios instance, `withCredentials: true`, base URL from `NEXT_PUBLIC_API_URL`), the named export (`{ api }`) used by every future data-fetching hook.
 
 - [ ] **Step 1: Create .env.example with the API URL var (needed for lib/api.js to have something to read)**
 
@@ -1028,10 +1028,10 @@ git commit -m "Add auth and UI Zustand stores"
 
 ---
 
-### Task 10: components/ui/Button.js
+### Task 10: components/ui/Button.jsx
 
 **Files:**
-- Create: `components/ui/Button.js`
+- Create: `components/ui/Button.jsx`
 - Test: `components/ui/Button.test.jsx`
 
 **Interfaces:**
@@ -1074,9 +1074,9 @@ npm install --save-dev @testing-library/user-event
 npx vitest run components/ui/Button.test.jsx
 ```
 
-Expected: FAIL — `components/ui/Button.js` does not exist.
+Expected: FAIL — `components/ui/Button.jsx` does not exist.
 
-- [ ] **Step 3: Implement components/ui/Button.js**
+- [ ] **Step 3: Implement components/ui/Button.jsx**
 
 ```jsx
 const VARIANT_CLASSES = {
@@ -1110,16 +1110,16 @@ Expected: 3 passed tests.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add package.json package-lock.json components/ui/Button.js components/ui/Button.test.jsx
+git add package.json package-lock.json components/ui/Button.jsx components/ui/Button.test.jsx
 git commit -m "Add Button UI primitive"
 ```
 
 ---
 
-### Task 11: components/ui/Modal.js (Radix Dialog wrapper)
+### Task 11: components/ui/Modal.jsx (Radix Dialog wrapper)
 
 **Files:**
-- Create: `components/ui/Modal.js`
+- Create: `components/ui/Modal.jsx`
 - Test: `components/ui/Modal.test.jsx`
 
 **Interfaces:**
@@ -1162,9 +1162,9 @@ describe('Modal', () => {
 npx vitest run components/ui/Modal.test.jsx
 ```
 
-Expected: FAIL — `components/ui/Modal.js` does not exist.
+Expected: FAIL — `components/ui/Modal.jsx` does not exist.
 
-- [ ] **Step 3: Implement components/ui/Modal.js**
+- [ ] **Step 3: Implement components/ui/Modal.jsx**
 
 ```jsx
 import * as Dialog from '@radix-ui/react-dialog';
@@ -1195,7 +1195,7 @@ Expected: 2 passed tests.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add components/ui/Modal.js components/ui/Modal.test.jsx
+git add components/ui/Modal.jsx components/ui/Modal.test.jsx
 git commit -m "Add Modal UI primitive"
 ```
 
@@ -1250,10 +1250,11 @@ export default function StorefrontLayout({ children }) {
 `app/(storefront)/category/[categorySlug]/page.js`:
 
 ```jsx
-export default function CategoryPage({ params }) {
+export default async function CategoryPage({ params }) {
+  const { categorySlug } = await params;
   return (
     <main className="p-8">
-      <h1 className="text-2xl font-semibold">Category: {params.categorySlug}</h1>
+      <h1 className="text-2xl font-semibold">Category: {categorySlug}</h1>
       <p className="text-slate-600">Subcategory/product listing placeholder.</p>
     </main>
   );
@@ -1263,11 +1264,12 @@ export default function CategoryPage({ params }) {
 `app/(storefront)/category/[categorySlug]/[subcategorySlug]/page.js`:
 
 ```jsx
-export default function SubcategoryPage({ params }) {
+export default async function SubcategoryPage({ params }) {
+  const { categorySlug, subcategorySlug } = await params;
   return (
     <main className="p-8">
       <h1 className="text-2xl font-semibold">
-        {params.categorySlug} / {params.subcategorySlug}
+        {categorySlug} / {subcategorySlug}
       </h1>
       <p className="text-slate-600">Product grid placeholder.</p>
     </main>
@@ -1280,11 +1282,12 @@ export default function SubcategoryPage({ params }) {
 `app/(storefront)/product/[productSlug]/[variantId]/page.js`:
 
 ```jsx
-export default function ProductVariantPage({ params }) {
+export default async function ProductVariantPage({ params }) {
+  const { productSlug, variantId } = await params;
   return (
     <main className="p-8">
-      <h1 className="text-2xl font-semibold">{params.productSlug}</h1>
-      <p className="text-slate-600">Variant {params.variantId} detail placeholder.</p>
+      <h1 className="text-2xl font-semibold">{productSlug}</h1>
+      <p className="text-slate-600">Variant {variantId} detail placeholder.</p>
     </main>
   );
 }
@@ -1334,10 +1337,11 @@ export default function CheckoutPage() {
 `app/(storefront)/order-confirmation/[orderNumber]/page.js`:
 
 ```jsx
-export default function OrderConfirmationPage({ params }) {
+export default async function OrderConfirmationPage({ params }) {
+  const { orderNumber } = await params;
   return (
     <main className="p-8">
-      <h1 className="text-2xl font-semibold">Order {params.orderNumber} confirmed</h1>
+      <h1 className="text-2xl font-semibold">Order {orderNumber} confirmed</h1>
       <p className="text-slate-600">Order confirmation placeholder.</p>
     </main>
   );
@@ -1429,11 +1433,12 @@ export default function ForgotPasswordPage() {
 `app/(auth)/reset-password/[token]/page.js`:
 
 ```jsx
-export default function ResetPasswordPage({ params }) {
+export default async function ResetPasswordPage({ params }) {
+  const { token } = await params;
   return (
     <main className="p-8">
       <h1 className="text-2xl font-semibold">Reset password</h1>
-      <p className="text-slate-600">Reset form placeholder for token {params.token}.</p>
+      <p className="text-slate-600">Reset form placeholder for token {token}.</p>
     </main>
   );
 }
@@ -1617,10 +1622,11 @@ export default function AccountOrdersPage() {
 `app/(account)/account/orders/[orderNumber]/page.js`:
 
 ```jsx
-export default function AccountOrderDetailPage({ params }) {
+export default async function AccountOrderDetailPage({ params }) {
+  const { orderNumber } = await params;
   return (
     <div>
-      <h1 className="text-2xl font-semibold">Order {params.orderNumber}</h1>
+      <h1 className="text-2xl font-semibold">Order {orderNumber}</h1>
       <p className="text-slate-600">Order detail placeholder.</p>
     </div>
   );
