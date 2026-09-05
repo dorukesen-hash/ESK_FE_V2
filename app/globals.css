@@ -15,6 +15,7 @@
   --color-accent-tint-strong: #cfe6fc;
   --color-button-secondary-bg: #ececec;
   --shadow-card: 0px 4px 24px 0px rgba(0, 0, 0, 0.08);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 .dark {
