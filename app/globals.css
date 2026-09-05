@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
+@source not "../docs";
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
@@ -14,8 +15,16 @@
   --color-accent-tint: #e7f2fd;
   --color-accent-tint-strong: #cfe6fc;
   --color-button-secondary-bg: #ececec;
-  --shadow-card: 0px 4px 24px 0px rgba(0, 0, 0, 0.08);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme inline {
+  --shadow-card: 0px 4px 24px 0px var(--shadow-card-ink);
+}
+
+:root {
+  color-scheme: light;
+  --shadow-card-ink: rgba(0, 0, 0, 0.08);
 }
 
 .dark {
@@ -30,12 +39,8 @@
   --color-accent-tint: #1c3350;
   --color-accent-tint-strong: #24466b;
   --color-button-secondary-bg: #2a3b4f;
-  --shadow-card: 0px 4px 24px 0px rgba(0, 0, 0, 0.32);
+  --shadow-card-ink: rgba(0, 0, 0, 0.32);
   color-scheme: dark;
-}
-
-:root {
-  color-scheme: light;
 }
 
 body {
