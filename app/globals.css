@@ -1,5 +1,37 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-text-primary: #182434;
+  --color-text-muted: #808080;
+  --color-border: #bdc2c7;
+  --color-primary: #2a6aa2;
+  --color-primary-hover: #1f5480;
+  --color-accent-tint: #e7f2fd;
+  --color-accent-tint-strong: #cfe6fc;
+  --color-button-secondary-bg: #ececec;
+  --shadow-card: 0px 4px 24px 0px rgba(0, 0, 0, 0.08);
+}
+
+.dark {
+  --color-background: #182434;
+  --color-surface: #1e2c3f;
+  --color-surface-elevated: #24344a;
+  --color-text-primary: #ffffff;
+  --color-text-muted: #9ba3ac;
+  --color-border: #33475e;
+  --color-primary: #5ca0e2;
+  --color-primary-hover: #2a6aa2;
+  --color-accent-tint: #1c3350;
+  --color-accent-tint-strong: #24466b;
+  --color-button-secondary-bg: #2a3b4f;
+  --shadow-card: 0px 4px 24px 0px rgba(0, 0, 0, 0.32);
+  color-scheme: dark;
+}
 
 :root {
   color-scheme: light;
