@@ -598,7 +598,7 @@ git commit -m "Add refresh-queue dedup helper for 401 handling"
 
 **Interfaces:**
 - Consumes: `createRefreshQueue` from `lib/refreshQueue.js` (Task 5).
-- Produces: `api` (axios instance, `withCredentials: true`, base URL from `NEXT_PUBLIC_API_URL`), the default export used by every future data-fetching hook.
+- Produces: `api` (axios instance, `withCredentials: true`, base URL from `NEXT_PUBLIC_API_URL`), the named export (`{ api }`) used by every future data-fetching hook.
 
 - [ ] **Step 1: Create .env.example with the API URL var (needed for lib/api.js to have something to read)**
 
