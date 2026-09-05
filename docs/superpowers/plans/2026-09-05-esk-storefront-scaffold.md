@@ -1250,10 +1250,11 @@ export default function StorefrontLayout({ children }) {
 `app/(storefront)/category/[categorySlug]/page.js`:
 
 ```jsx
-export default function CategoryPage({ params }) {
+export default async function CategoryPage({ params }) {
+  const { categorySlug } = await params;
   return (
     <main className="p-8">
-      <h1 className="text-2xl font-semibold">Category: {params.categorySlug}</h1>
+      <h1 className="text-2xl font-semibold">Category: {categorySlug}</h1>
       <p className="text-slate-600">Subcategory/product listing placeholder.</p>
     </main>
   );
@@ -1263,11 +1264,12 @@ export default function CategoryPage({ params }) {
 `app/(storefront)/category/[categorySlug]/[subcategorySlug]/page.js`:
 
 ```jsx
-export default function SubcategoryPage({ params }) {
+export default async function SubcategoryPage({ params }) {
+  const { categorySlug, subcategorySlug } = await params;
   return (
     <main className="p-8">
       <h1 className="text-2xl font-semibold">
-        {params.categorySlug} / {params.subcategorySlug}
+        {categorySlug} / {subcategorySlug}
       </h1>
       <p className="text-slate-600">Product grid placeholder.</p>
     </main>
@@ -1280,11 +1282,12 @@ export default function SubcategoryPage({ params }) {
 `app/(storefront)/product/[productSlug]/[variantId]/page.js`:
 
 ```jsx
-export default function ProductVariantPage({ params }) {
+export default async function ProductVariantPage({ params }) {
+  const { productSlug, variantId } = await params;
   return (
     <main className="p-8">
-      <h1 className="text-2xl font-semibold">{params.productSlug}</h1>
-      <p className="text-slate-600">Variant {params.variantId} detail placeholder.</p>
+      <h1 className="text-2xl font-semibold">{productSlug}</h1>
+      <p className="text-slate-600">Variant {variantId} detail placeholder.</p>
     </main>
   );
 }
@@ -1334,10 +1337,11 @@ export default function CheckoutPage() {
 `app/(storefront)/order-confirmation/[orderNumber]/page.js`:
 
 ```jsx
-export default function OrderConfirmationPage({ params }) {
+export default async function OrderConfirmationPage({ params }) {
+  const { orderNumber } = await params;
   return (
     <main className="p-8">
-      <h1 className="text-2xl font-semibold">Order {params.orderNumber} confirmed</h1>
+      <h1 className="text-2xl font-semibold">Order {orderNumber} confirmed</h1>
       <p className="text-slate-600">Order confirmation placeholder.</p>
     </main>
   );
@@ -1429,11 +1433,12 @@ export default function ForgotPasswordPage() {
 `app/(auth)/reset-password/[token]/page.js`:
 
 ```jsx
-export default function ResetPasswordPage({ params }) {
+export default async function ResetPasswordPage({ params }) {
+  const { token } = await params;
   return (
     <main className="p-8">
       <h1 className="text-2xl font-semibold">Reset password</h1>
-      <p className="text-slate-600">Reset form placeholder for token {params.token}.</p>
+      <p className="text-slate-600">Reset form placeholder for token {token}.</p>
     </main>
   );
 }
@@ -1617,10 +1622,11 @@ export default function AccountOrdersPage() {
 `app/(account)/account/orders/[orderNumber]/page.js`:
 
 ```jsx
-export default function AccountOrderDetailPage({ params }) {
+export default async function AccountOrderDetailPage({ params }) {
+  const { orderNumber } = await params;
   return (
     <div>
-      <h1 className="text-2xl font-semibold">Order {params.orderNumber}</h1>
+      <h1 className="text-2xl font-semibold">Order {orderNumber}</h1>
       <p className="text-slate-600">Order detail placeholder.</p>
     </div>
   );
