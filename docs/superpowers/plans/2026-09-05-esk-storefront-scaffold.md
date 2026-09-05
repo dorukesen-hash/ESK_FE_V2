@@ -57,8 +57,8 @@ app/
     account/invoices/page.js
 
 components/
-  ui/Button.js, ui/Button.test.jsx
-  ui/Modal.js, ui/Modal.test.jsx
+  ui/Button.jsx, ui/Button.test.jsx
+  ui/Modal.jsx, ui/Modal.test.jsx
   layout/AuthGuard.js, layout/AuthGuard.test.jsx
 
 lib/
@@ -1028,10 +1028,10 @@ git commit -m "Add auth and UI Zustand stores"
 
 ---
 
-### Task 10: components/ui/Button.js
+### Task 10: components/ui/Button.jsx
 
 **Files:**
-- Create: `components/ui/Button.js`
+- Create: `components/ui/Button.jsx`
 - Test: `components/ui/Button.test.jsx`
 
 **Interfaces:**
@@ -1074,9 +1074,9 @@ npm install --save-dev @testing-library/user-event
 npx vitest run components/ui/Button.test.jsx
 ```
 
-Expected: FAIL — `components/ui/Button.js` does not exist.
+Expected: FAIL — `components/ui/Button.jsx` does not exist.
 
-- [ ] **Step 3: Implement components/ui/Button.js**
+- [ ] **Step 3: Implement components/ui/Button.jsx**
 
 ```jsx
 const VARIANT_CLASSES = {
@@ -1110,16 +1110,16 @@ Expected: 3 passed tests.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add package.json package-lock.json components/ui/Button.js components/ui/Button.test.jsx
+git add package.json package-lock.json components/ui/Button.jsx components/ui/Button.test.jsx
 git commit -m "Add Button UI primitive"
 ```
 
 ---
 
-### Task 11: components/ui/Modal.js (Radix Dialog wrapper)
+### Task 11: components/ui/Modal.jsx (Radix Dialog wrapper)
 
 **Files:**
-- Create: `components/ui/Modal.js`
+- Create: `components/ui/Modal.jsx`
 - Test: `components/ui/Modal.test.jsx`
 
 **Interfaces:**
@@ -1162,9 +1162,9 @@ describe('Modal', () => {
 npx vitest run components/ui/Modal.test.jsx
 ```
 
-Expected: FAIL — `components/ui/Modal.js` does not exist.
+Expected: FAIL — `components/ui/Modal.jsx` does not exist.
 
-- [ ] **Step 3: Implement components/ui/Modal.js**
+- [ ] **Step 3: Implement components/ui/Modal.jsx**
 
 ```jsx
 import * as Dialog from '@radix-ui/react-dialog';
@@ -1195,7 +1195,7 @@ Expected: 2 passed tests.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add components/ui/Modal.js components/ui/Modal.test.jsx
+git add components/ui/Modal.jsx components/ui/Modal.test.jsx
 git commit -m "Add Modal UI primitive"
 ```
 
