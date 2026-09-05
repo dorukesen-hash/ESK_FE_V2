@@ -1,8 +1,9 @@
-export default function ProductVariantPage({ params }) {
+export default async function ProductVariantPage({ params }) {
+  const { productSlug, variantId } = await params;
   return (
     <main className="p-8">
-      <h1 className="text-2xl font-semibold">{params.productSlug}</h1>
-      <p className="text-slate-600">Variant {params.variantId} detail placeholder.</p>
+      <h1 className="text-2xl font-semibold">{productSlug}</h1>
+      <p className="text-slate-600">Variant {variantId} detail placeholder.</p>
     </main>
   );
 }
