@@ -1,3 +1,5 @@
+'use client';
+
 import * as Dialog from '@radix-ui/react-dialog';
 
 export function Modal({ open, onOpenChange, title, children }) {
