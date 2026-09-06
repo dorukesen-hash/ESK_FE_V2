@@ -16,16 +16,16 @@ import { slugify } from '@/lib/slugify';
 const comingSoonLinks = ['Industries We Serve', 'Knowledge Center'];
 
 const itemClass =
-  'flex h-14 items-center px-4 text-sm font-semibold text-text-primary transition-colors hover:bg-accent-tint hover:text-primary active:translate-y-px';
+  'flex h-14 shrink-0 items-center whitespace-nowrap px-4 text-sm font-semibold text-on-ink transition-colors hover:bg-ink-elevated hover:text-accent active:translate-y-px';
 
 function ComingSoonItem({ label }) {
   return (
     <span
       aria-disabled="true"
-      className={`${itemClass} cursor-default text-text-muted hover:bg-transparent hover:text-text-muted active:translate-y-0`}
+      className={`${itemClass} cursor-default text-on-ink-muted hover:bg-transparent hover:text-on-ink-muted active:translate-y-0`}
     >
       {label}
-      <span className="ml-2 text-[10px] font-semibold uppercase tracking-wider text-text-muted/70">
+      <span className="ml-2 text-[10px] font-semibold uppercase tracking-wider text-on-ink-muted/70">
         Coming Soon
       </span>
     </span>
@@ -37,10 +37,12 @@ export function Navbar() {
   const { data: categories, isLoading, isError } = useCategories();
 
   return (
-    <nav aria-label="Primary" className="border-b border-border bg-background">
-      <div className="mx-auto flex max-w-6xl items-center px-6">
+    <nav aria-label="Primary" className="border-b border-on-ink-border bg-ink">
+      <div className="scrollbar-hide mx-auto flex max-w-6xl items-center overflow-x-auto px-6">
         <DropdownMenu.Root open={shopOpen} onOpenChange={setShopOpen}>
-          <DropdownMenu.Trigger className={itemClass}>
+          <DropdownMenu.Trigger
+            className={`${itemClass} ${shopOpen ? 'bg-ink-elevated text-accent' : ''}`}
+          >
             Shop Products
             <ChevronDown
               aria-hidden="true"
@@ -54,6 +56,7 @@ export function Navbar() {
               sideOffset={0}
               className="animate-dropdown-in z-20 w-[min(92vw,64rem)] rounded-b-lg border border-t-0 border-border bg-surface shadow-lg"
             >
+              <div className="h-1 bg-accent" />
               <div className="p-6">
                 {isLoading && (
                   <p className="text-sm text-text-muted" aria-live="polite">
@@ -79,7 +82,7 @@ export function Navbar() {
                               {category.name}
                             </Link>
                           </DropdownMenu.Item>
-                          <ul className="mt-2 space-y-1">
+                          <ul className="mt-3 space-y-1.5 border-l-2 border-accent-tint-strong pl-3">
                             {category.subcategories.map((subcategory) => (
                               <li key={subcategory.id}>
                                 <DropdownMenu.Item asChild>

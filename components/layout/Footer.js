@@ -17,13 +17,15 @@ const policyLinks = [
 function FooterLinkList({ title, links }) {
   return (
     <div>
-      <h2 className="text-sm font-semibold text-text-primary">{title}</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-on-ink">
+        {title}
+      </h2>
       <ul className="mt-4 space-y-2">
         {links.map((link) => (
           <li key={link.href}>
             <Link
               href={link.href}
-              className="text-sm text-text-muted transition-colors hover:text-primary"
+              className="text-sm text-on-ink-muted transition-colors hover:text-accent"
             >
               {link.label}
             </Link>
@@ -36,25 +38,25 @@ function FooterLinkList({ title, links }) {
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-surface">
+    <footer className="border-t-2 border-accent bg-ink">
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
           <div>
             <Image
-              src="/esk-icon.png"
+              src="/esk-icon-dark.png"
               alt="ESK Packaging"
-              width={168}
+              width={172}
               height={24}
               className="h-6 w-auto"
             />
-            <p className="mt-4 text-sm text-text-muted">
+            <p className="mt-4 text-sm text-on-ink-muted">
               Industrial packaging products, sourced and shipped for your business.
             </p>
           </div>
           <FooterLinkList title="Company" links={companyLinks} />
           <FooterLinkList title="Policies" links={policyLinks} />
         </div>
-        <div className="mt-10 border-t border-border pt-6 text-sm text-text-muted">
+        <div className="mt-10 border-t border-on-ink-border pt-6 text-sm text-on-ink-muted">
           © {new Date().getFullYear()} ESK Packaging. All rights reserved.
         </div>
       </div>

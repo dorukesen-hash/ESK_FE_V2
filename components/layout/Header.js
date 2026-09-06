@@ -27,14 +27,14 @@ function SearchForm() {
       <div className="relative">
         <Search
           aria-hidden="true"
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
+          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
         />
         <input
           id="header-search"
           name="q"
           type="search"
           placeholder="Search packaging products..."
-          className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full rounded-full border border-border bg-background py-2.5 pl-11 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
     </form>
@@ -51,38 +51,45 @@ export function Header() {
 
   return (
     <header className="border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-3">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-4 sm:gap-6 sm:px-6">
         <Link href="/" className="shrink-0">
+          <Image
+            src="/esk-icon-mini.png"
+            alt="ESK Packaging"
+            width={28}
+            height={18}
+            className="h-6 w-auto sm:hidden"
+          />
           <Image
             src="/esk-icon.png"
             alt="ESK Packaging"
-            width={140}
-            height={20}
-            className="h-5 w-auto"
+            width={168}
+            height={24}
+            className="hidden h-7 w-auto sm:block"
           />
         </Link>
 
         <SearchForm />
 
-        <div className="flex shrink-0 items-center gap-4">
+        <div className="flex shrink-0 items-center gap-3">
           {user ? (
             <Link
               href="/account"
               aria-label="Account"
-              className="flex min-h-11 min-w-11 items-center justify-center gap-2 text-text-primary hover:text-primary"
+              className="flex h-10 items-center gap-2 rounded-full border border-border px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary hover:text-primary"
             >
-              <User aria-hidden="true" className="h-5 w-5" />
-              <span className="hidden text-sm sm:inline">Account</span>
+              <User aria-hidden="true" className="h-4 w-4" />
+              <span className="hidden sm:inline">Account</span>
             </Link>
           ) : (
             <button
               type="button"
               onClick={openLoginModal}
               aria-label="Login"
-              className="flex min-h-11 min-w-11 items-center justify-center gap-2 text-text-primary hover:text-primary"
+              className="flex h-10 items-center gap-2 rounded-full border border-border px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary hover:text-primary"
             >
-              <User aria-hidden="true" className="h-5 w-5" />
-              <span className="hidden text-sm sm:inline">Login</span>
+              <User aria-hidden="true" className="h-4 w-4" />
+              <span className="hidden sm:inline">Login</span>
             </button>
           )}
 
@@ -90,11 +97,11 @@ export function Header() {
             type="button"
             onClick={openCartDrawer}
             aria-label={`Cart${itemCount > 0 ? `, ${itemCount} item${itemCount === 1 ? '' : 's'}` : ''}`}
-            className="relative flex min-h-11 min-w-11 items-center justify-center text-text-primary hover:text-primary"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full text-text-primary transition-colors hover:bg-accent-tint hover:text-primary"
           >
             <ShoppingCart aria-hidden="true" className="h-5 w-5" />
             {itemCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-accent-foreground">
                 {itemCount}
               </span>
             )}

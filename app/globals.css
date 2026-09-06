@@ -16,6 +16,14 @@
   --color-accent-tint: #e7f2fd;
   --color-accent-tint-strong: #cfe6fc;
   --color-button-secondary-bg: #ececec;
+  --color-accent: #d97706;
+  --color-accent-hover: #b45309;
+  --color-accent-foreground: #182434;
+  --color-ink: #182434;
+  --color-ink-elevated: #1e2c3f;
+  --color-on-ink: #ffffff;
+  --color-on-ink-muted: #9ba3ac;
+  --color-on-ink-border: #33475e;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -41,6 +49,9 @@
   --color-accent-tint: #1c3350;
   --color-accent-tint-strong: #24466b;
   --color-button-secondary-bg: #2a3b4f;
+  --color-accent: #e8a33d;
+  --color-accent-hover: #f0b862;
+  --color-accent-foreground: #182434;
   --shadow-card-ink: rgba(0, 0, 0, 0.32);
   color-scheme: dark;
 }
@@ -64,4 +75,13 @@ body {
   .animate-dropdown-in {
     animation: dropdown-in 150ms ease-out;
   }
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

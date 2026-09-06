@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -18,11 +18,18 @@ function wrapper({ children }) {
 }
 
 describe('useCategories', () => {
+  const originalEnv = process.env.NEXT_PUBLIC_CDN_URL;
+
   beforeEach(() => {
     api.get.mockReset();
+    process.env.NEXT_PUBLIC_CDN_URL = 'https://cdn.eskpackaging.com/';
   });
 
-  it('maps the response down to id/name pairs, including subcategories', async () => {
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_CDN_URL = originalEnv;
+  });
+
+  it('maps the response down to id/name pairs, including subcategories and a representative image', async () => {
     api.get.mockResolvedValue({
       data: [
         {
@@ -30,7 +37,15 @@ describe('useCategories', () => {
           name: 'EDGE PROTECTION',
           products: [],
           subcategories: [
-            { id: 24, name: 'Corner Board', available: false, products: [] },
+            {
+              id: 24,
+              name: 'Corner Board',
+              available: false,
+              products: [],
+              subcategory_images: [
+                { image: { url: 'images/corner-board.jpg' } },
+              ],
+            },
           ],
         },
         { id: 7, name: 'Stretch Wrap', subcategories: [] },
@@ -46,9 +61,10 @@ describe('useCategories', () => {
       {
         id: 12,
         name: 'EDGE PROTECTION',
+        image: 'https://cdn.eskpackaging.com/images/corner-board.jpg',
         subcategories: [{ id: 24, name: 'Corner Board' }],
       },
-      { id: 7, name: 'Stretch Wrap', subcategories: [] },
+      { id: 7, name: 'Stretch Wrap', image: null, subcategories: [] },
     ]);
   });
 
