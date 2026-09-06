@@ -40,4 +40,19 @@ describe('CategoryShowcase', () => {
       '/category/boxes'
     );
   });
+
+  it('numbers each tile starting from 01', () => {
+    useCategories.mockReturnValue({
+      data: [
+        { id: 12, name: 'EDGE PROTECTION', image: null, subcategories: [] },
+        { id: 7, name: 'Boxes', image: null, subcategories: [] },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+    render(<CategoryShowcase />);
+
+    expect(screen.getByText('01')).toBeInTheDocument();
+    expect(screen.getByText('02')).toBeInTheDocument();
+  });
 });
