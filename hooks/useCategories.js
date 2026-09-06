@@ -9,8 +9,15 @@ export function useCategories() {
     queryFn: async () => {
       const { data } = await api.get('/category');
       // The API returns the full category -> subcategory -> product -> variant
-      // tree; the nav only needs top-level id/name.
-      return data.map((category) => ({ id: category.id, name: category.name }));
+      // tree; the nav only needs id/name at each of the first two levels.
+      return data.map((category) => ({
+        id: category.id,
+        name: category.name,
+        subcategories: (category.subcategories ?? []).map((subcategory) => ({
+          id: subcategory.id,
+          name: subcategory.name,
+        })),
+      }));
     },
     staleTime: 5 * 60 * 1000,
   });

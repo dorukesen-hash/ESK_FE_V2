@@ -22,10 +22,17 @@ describe('useCategories', () => {
     api.get.mockReset();
   });
 
-  it('maps the response down to id/name pairs', async () => {
+  it('maps the response down to id/name pairs, including subcategories', async () => {
     api.get.mockResolvedValue({
       data: [
-        { id: 12, name: 'EDGE PROTECTION', subcategories: [], products: [] },
+        {
+          id: 12,
+          name: 'EDGE PROTECTION',
+          products: [],
+          subcategories: [
+            { id: 24, name: 'Corner Board', available: false, products: [] },
+          ],
+        },
         { id: 7, name: 'Stretch Wrap', subcategories: [] },
       ],
     });
@@ -36,8 +43,12 @@ describe('useCategories', () => {
 
     expect(api.get).toHaveBeenCalledWith('/category');
     expect(result.current.data).toEqual([
-      { id: 12, name: 'EDGE PROTECTION' },
-      { id: 7, name: 'Stretch Wrap' },
+      {
+        id: 12,
+        name: 'EDGE PROTECTION',
+        subcategories: [{ id: 24, name: 'Corner Board' }],
+      },
+      { id: 7, name: 'Stretch Wrap', subcategories: [] },
     ]);
   });
 

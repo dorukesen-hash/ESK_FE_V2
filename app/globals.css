@@ -48,3 +48,20 @@
 body {
   margin: 0;
 }
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-dropdown-in {
+    animation: dropdown-in 150ms ease-out;
+  }
+}
