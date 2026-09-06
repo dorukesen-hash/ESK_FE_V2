@@ -34,6 +34,11 @@ function FeaturedCard({ product, index }) {
       <div className="flex flex-1 flex-col justify-center gap-2 p-6">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent">Featured</p>
         <h3 className="text-lg font-bold leading-snug text-text-primary">{product.title}</h3>
+        {product.sku && (
+          <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
+            SKU: {product.sku}
+          </p>
+        )}
         {price && <p className="text-sm text-text-muted">{price}</p>}
         <span className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-text-primary">
           <span className="border-b border-accent pb-0.5 transition-colors group-hover:text-primary">

@@ -26,12 +26,13 @@ describe('FeaturedProducts', () => {
     expect(screen.getByText('Featured products unavailable.')).toBeInTheDocument();
   });
 
-  it('renders a card per featured product with price and link', () => {
+  it('renders a card per featured product with SKU, price and link', () => {
     useFeaturedProducts.mockReturnValue({
       data: [
         {
           id: 327,
           title: '1/2" x 3610\' Composite Cord Strapping',
+          sku: 'CC40/2',
           price: 68,
           unit: 'Coils',
           image: 'https://cdn.example.com/a.jpg',
@@ -47,6 +48,27 @@ describe('FeaturedProducts', () => {
       name: /Composite Cord Strapping/,
     });
     expect(link).toHaveAttribute('href', '/product/composite-strapping/327');
+    expect(screen.getByText('SKU: CC40/2')).toBeInTheDocument();
     expect(screen.getByText('$68.00 / Coils')).toBeInTheDocument();
+  });
+
+  it('omits the SKU line when a product has none', () => {
+    useFeaturedProducts.mockReturnValue({
+      data: [
+        {
+          id: 327,
+          title: 'No SKU Product',
+          sku: null,
+          price: 10,
+          unit: 'Each',
+          image: null,
+          href: '/product/no-sku/327',
+        },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+    render(<FeaturedProducts />);
+    expect(screen.queryByText(/SKU:/)).not.toBeInTheDocument();
   });
 });
