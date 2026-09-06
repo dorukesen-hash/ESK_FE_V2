@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { HeroBanner } from '@/components/home/HeroBanner';
 import { CategoryShowcase } from '@/components/home/CategoryShowcase';
+import { FeaturedProducts } from '@/components/home/FeaturedProducts';
 
 export default function HomePage() {
   return (
@@ -35,6 +36,8 @@ export default function HomePage() {
           <CategoryShowcase />
         </div>
       </section>
+
+      <FeaturedProducts />
     </main>
   );
 }
