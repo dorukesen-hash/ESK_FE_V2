@@ -6,20 +6,34 @@ import { useCategories } from '@/hooks/useCategories';
 import { slugify } from '@/lib/slugify';
 
 // Asymmetric bento rhythm instead of a uniform grid: the first tile is a
-// large feature block, the sixth spans two columns, the rest are standard
-// squares. Keyed by index so the pattern stays stable across renders.
-const SPAN_BY_INDEX = {
-  0: 'sm:col-span-2 sm:row-span-2',
-  5: 'sm:col-span-2',
-};
+// large 2x2 feature block, the sixth spans two columns, the rest are
+// standard squares. Both spans are gated on having enough remaining tiles
+// to fully fill the row/rows they reserve — with a 4-column grid, a 2x2
+// tile needs >=4 more tiles to fill its two rows, and a 2-col-wide tile
+// needs 2 more tiles after it to fill its own row. Below those thresholds
+// the pattern is skipped entirely so the grid never renders a gap; it just
+// falls back to a plain uniform grid. This keeps the layout safe as
+// categories are added or removed from the catalog.
+const FEATURE_MIN_COUNT = 5;
+const WIDE_MIN_COUNT = 8;
 
-function CategoryTile({ category, index }) {
+function getSpanClass(index, total) {
+  if (index === 0 && total >= FEATURE_MIN_COUNT) {
+    return 'sm:col-span-2 sm:row-span-2';
+  }
+  if (index === 5 && total >= WIDE_MIN_COUNT) {
+    return 'sm:col-span-2';
+  }
+  return '';
+}
+
+function CategoryTile({ category, index, total }) {
   const categorySlug = slugify(category.name);
 
   return (
     <Link
       href={`/category/${categorySlug}`}
-      className={`group flex flex-col ${SPAN_BY_INDEX[index] ?? ''}`}
+      className={`group flex flex-col ${getSpanClass(index, total)}`}
     >
       <div className="relative aspect-square flex-1 overflow-hidden rounded-lg bg-button-secondary-bg sm:aspect-auto">
         {category.image && (
@@ -49,11 +63,11 @@ export function CategoryShowcase() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4 sm:auto-rows-[180px]">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
         {Array.from({ length: 8 }).map((_, index) => (
           <div
             key={index}
-            className={`aspect-square animate-pulse rounded-lg bg-button-secondary-bg sm:aspect-auto ${SPAN_BY_INDEX[index] ?? ''}`}
+            className="aspect-square animate-pulse rounded-lg bg-button-secondary-bg"
           />
         ))}
       </div>
@@ -64,10 +78,19 @@ export function CategoryShowcase() {
     return <p className="text-sm text-text-muted">Categories unavailable.</p>;
   }
 
+  if (categories.length === 0) {
+    return <p className="text-sm text-text-muted">No categories available yet.</p>;
+  }
+
   return (
     <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4 sm:auto-rows-[180px] sm:[grid-auto-flow:dense]">
       {categories.map((category, index) => (
-        <CategoryTile key={category.id} category={category} index={index} />
+        <CategoryTile
+          key={category.id}
+          category={category}
+          index={index}
+          total={categories.length}
+        />
       ))}
     </div>
   );
