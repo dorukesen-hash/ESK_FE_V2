@@ -34,30 +34,7 @@ describe('HeroBanner', () => {
     );
   });
 
-  it('advances to the next slide when the next control is clicked', async () => {
-    render(<HeroBanner />);
-    await userEvent.click(screen.getByRole('button', { name: 'Next slide' }));
-    expect(
-      screen.getByRole('heading', {
-        name: 'Everything your warehouse needs, in one order',
-      })
-    ).toBeInTheDocument();
-  });
-
-  it('wraps around from the last slide to the first via the next control', async () => {
-    render(<HeroBanner />);
-    const next = screen.getByRole('button', { name: 'Next slide' });
-    await userEvent.click(next);
-    await userEvent.click(next);
-    await userEvent.click(next);
-    expect(
-      screen.getByRole('heading', {
-        name: 'Industrial packaging supplies for every business',
-      })
-    ).toBeInTheDocument();
-  });
-
-  it('jumps to a slide via its dot indicator', async () => {
+  it('jumps to a slide via its numbered tab', async () => {
     render(<HeroBanner />);
     await userEvent.click(screen.getByRole('button', { name: 'Go to slide 3' }));
     expect(

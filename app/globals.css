@@ -92,3 +92,24 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+@keyframes slide-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animate-slide-progress {
+  animation: slide-progress linear forwards;
+  transform-origin: left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-progress {
+    animation: none;
+    transform: scaleX(1);
+  }
+}

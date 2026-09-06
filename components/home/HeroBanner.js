@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
@@ -30,16 +30,14 @@ const SLIDES = [
     subtitle:
       'Strapping, tools, stretch film and more, sourced and shipped in bulk.',
     cta: { label: 'Shop Products', href: '/search' },
-    theme: 'light',
   },
   {
     image: '/hero-product-range.webp',
     alt: 'ESK Packaging product range: branded tape, corrugated boxes, strapping coils, stretch film and dispenser carts',
     kicker: 'Full Product Range',
-    title: "Everything your warehouse needs, in one order",
+    title: 'Everything your warehouse needs, in one order',
     subtitle: 'Boxes, tape, film and equipment, stocked and ready to ship.',
     cta: { label: 'Browse Categories', href: '/#categories' },
-    theme: 'light',
     imagePosition: 'object-bottom',
   },
   {
@@ -49,7 +47,6 @@ const SLIDES = [
     title: 'Packaging solutions for demanding industrial loads',
     subtitle: 'From machinery to lumber, we help you secure what matters.',
     cta: { label: 'About ESK', href: '/about-us' },
-    theme: 'dark',
   },
 ];
 
@@ -76,98 +73,98 @@ export function HeroBanner() {
     return () => clearInterval(timer);
   }, [isPaused, prefersReducedMotion]);
 
+  const slide = SLIDES[index];
+
   return (
     <section
       aria-roledescription="carousel"
       aria-label="Featured highlights"
-      className="relative h-[520px] overflow-hidden bg-ink sm:h-[600px]"
+      className="relative overflow-hidden bg-ink"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onFocus={() => setIsPaused(true)}
       onBlur={() => setIsPaused(false)}
     >
-      <div
-        className={`flex h-full ${prefersReducedMotion ? '' : 'transition-transform duration-700 ease-in-out'}`}
-        style={{ transform: `translateX(-${index * 100}%)` }}
-      >
-        {SLIDES.map((slide, slideIndex) => (
-          <div
-            key={slide.image}
-            role="group"
-            aria-roledescription="slide"
-            aria-label={`${slideIndex + 1} of ${SLIDES.length}`}
-            aria-hidden={slideIndex !== index}
-            className="relative h-full w-full shrink-0"
-          >
+      <div className="mx-auto flex max-w-7xl flex-col sm:h-[600px] sm:flex-row">
+        {/* Image panel: full-bleed on mobile, angled full-height panel on desktop */}
+        <div className="relative h-64 w-full sm:absolute sm:inset-y-0 sm:right-0 sm:h-full sm:w-[58%] sm:[clip-path:polygon(9%_0,100%_0,100%_100%,0_100%)]">
+          {SLIDES.map((s, slideIndex) => (
             <Image
-              src={slide.image}
-              alt={slide.alt}
+              key={s.image}
+              src={s.image}
+              alt={s.alt}
               fill
               priority={slideIndex === 0}
-              sizes="100vw"
-              className={`object-cover ${slide.imagePosition ?? ''}`}
+              sizes="(min-width: 640px) 58vw, 100vw"
+              className={`object-cover ${s.imagePosition ?? ''} transition-opacity duration-700 ${
+                slideIndex === index ? 'opacity-100' : 'opacity-0'
+              }`}
+              aria-hidden={slideIndex !== index}
             />
-            <div
-              aria-hidden="true"
-              className={
-                slide.theme === 'dark'
-                  ? 'absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent'
-                  : 'absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/40 to-transparent'
-              }
-            />
-            <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-end px-6 pb-16 sm:pb-20">
-              <div className="max-w-xl">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent">
-                  {slide.kicker}
-                </p>
-                <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
-                  {slide.title}
-                </h1>
-                <p className="mt-4 max-w-md text-base text-white/80 sm:text-lg">
-                  {slide.subtitle}
-                </p>
-                <Link
-                  href={slide.cta.href}
-                  className="mt-6 inline-flex h-12 items-center rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
-                >
-                  {slide.cta.label}
-                </Link>
-              </div>
-            </div>
+          ))}
+          <div aria-hidden="true" className="absolute inset-0 bg-ink/25" />
+        </div>
+
+        {/* Text panel */}
+        <div className="relative z-10 flex w-full flex-col justify-center px-6 py-10 sm:w-[46%] sm:px-10 sm:py-0 lg:px-14">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-2 top-1/2 hidden -translate-y-1/2 select-none text-[220px] font-black leading-none text-on-ink/[0.06] lg:block"
+          >
+            0{index + 1}
+          </span>
+
+          <div className="relative">
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
+              {slide.kicker}
+            </p>
+            <h1 className="mt-4 text-3xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-5xl">
+              {slide.title}
+            </h1>
+            <p className="mt-5 max-w-sm text-sm text-on-ink-muted sm:text-base">
+              {slide.subtitle}
+            </p>
+            <Link
+              href={slide.cta.href}
+              className="group mt-7 inline-flex items-center gap-2 text-sm font-semibold text-white"
+            >
+              <span className="border-b border-accent pb-0.5 transition-colors group-hover:text-accent">
+                {slide.cta.label}
+              </span>
+              <ArrowRight
+                aria-hidden="true"
+                className="h-4 w-4 text-accent transition-transform group-hover:translate-x-1"
+              />
+            </Link>
           </div>
-        ))}
-      </div>
 
-      <button
-        type="button"
-        onClick={() => goTo(index - 1)}
-        aria-label="Previous slide"
-        className="absolute left-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white transition-colors hover:bg-black/50 sm:flex"
-      >
-        <ChevronLeft aria-hidden="true" className="h-5 w-5" />
-      </button>
-      <button
-        type="button"
-        onClick={() => goTo(index + 1)}
-        aria-label="Next slide"
-        className="absolute right-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white transition-colors hover:bg-black/50 sm:flex"
-      >
-        <ChevronRight aria-hidden="true" className="h-5 w-5" />
-      </button>
-
-      <div className="absolute inset-x-0 bottom-6 z-10 flex justify-center gap-2">
-        {SLIDES.map((slide, slideIndex) => (
-          <button
-            key={slide.image}
-            type="button"
-            onClick={() => goTo(slideIndex)}
-            aria-label={`Go to slide ${slideIndex + 1}`}
-            aria-current={slideIndex === index}
-            className={`h-2 rounded-full transition-colors ${
-              slideIndex === index ? 'w-6 bg-accent' : 'w-2 bg-white/50 hover:bg-white/80'
-            }`}
-          />
-        ))}
+          <div className="mt-10 flex items-center gap-5">
+            {SLIDES.map((s, slideIndex) => (
+              <button
+                key={s.image}
+                type="button"
+                onClick={() => goTo(slideIndex)}
+                aria-label={`Go to slide ${slideIndex + 1}`}
+                aria-current={slideIndex === index}
+                className={`text-sm font-bold transition-colors ${
+                  slideIndex === index ? 'text-accent' : 'text-on-ink-muted hover:text-white'
+                }`}
+              >
+                0{slideIndex + 1}
+              </button>
+            ))}
+          </div>
+          <div className="relative mt-3 h-px w-32 bg-on-ink-border">
+            <div
+              key={index}
+              className="absolute inset-y-0 left-0 w-full bg-accent animate-slide-progress"
+              style={{
+                animationDuration: `${AUTOPLAY_MS}ms`,
+                animationPlayState: isPaused ? 'paused' : 'running',
+              }}
+            />
+          </div>
+        </div>
       </div>
     </section>
   );
