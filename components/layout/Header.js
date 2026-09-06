@@ -50,7 +50,7 @@ export function Header() {
   const openLoginModal = useUIStore((state) => state.openLoginModal);
 
   return (
-    <header className="sticky top-0 z-10 border-b border-border bg-surface">
+    <header className="border-b border-border bg-surface">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-3">
         <Link href="/" className="shrink-0">
           <Image
