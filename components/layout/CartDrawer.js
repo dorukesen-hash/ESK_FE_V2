@@ -24,7 +24,7 @@ export function CartDrawer() {
             </Dialog.Title>
             <Dialog.Close
               aria-label="Close cart"
-              className="flex h-11 w-11 items-center justify-center text-text-muted hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex h-11 w-11 items-center justify-center text-text-muted transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <X aria-hidden="true" className="h-5 w-5" />
             </Dialog.Close>
@@ -69,7 +69,7 @@ export function CartDrawer() {
                     <button
                       type="button"
                       onClick={() => removeItem(item.variantId, item.isPallet)}
-                      className="text-xs text-text-muted hover:text-primary"
+                      className="text-xs text-text-muted transition-colors hover:text-primary"
                     >
                       Remove
                     </button>
@@ -82,7 +82,7 @@ export function CartDrawer() {
           <Link
             href="/cart"
             onClick={closeCartDrawer}
-            className="mt-6 flex min-h-11 items-center justify-center rounded-md bg-primary text-sm font-medium text-primary-foreground hover:bg-primary-hover"
+            className="mt-6 flex min-h-11 items-center justify-center rounded-md bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
           >
             Go to Cart
           </Link>

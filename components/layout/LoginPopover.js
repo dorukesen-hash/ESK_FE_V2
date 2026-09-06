@@ -81,7 +81,7 @@ export function LoginPopover() {
         <Link
           href="/register"
           onClick={() => handleOpenChange(false)}
-          className="text-primary hover:text-primary-hover"
+          className="text-primary transition-colors hover:text-primary-hover"
         >
           Register
         </Link>

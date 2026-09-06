@@ -60,6 +60,13 @@ body {
   margin: 0;
 }
 
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+}
+
 @keyframes dropdown-in {
   from {
     opacity: 0;
