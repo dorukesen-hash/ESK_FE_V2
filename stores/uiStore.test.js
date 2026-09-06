@@ -3,7 +3,11 @@ import { useUIStore } from './uiStore';
 
 describe('useUIStore', () => {
   beforeEach(() => {
-    useUIStore.setState({ isCartDrawerOpen: false, isMobileNavOpen: false });
+    useUIStore.setState({
+      isCartDrawerOpen: false,
+      isLoginModalOpen: false,
+      isMobileNavOpen: false,
+    });
   });
 
   it('opens and closes the cart drawer', () => {
@@ -11,6 +15,13 @@ describe('useUIStore', () => {
     expect(useUIStore.getState().isCartDrawerOpen).toBe(true);
     useUIStore.getState().closeCartDrawer();
     expect(useUIStore.getState().isCartDrawerOpen).toBe(false);
+  });
+
+  it('opens and closes the login modal', () => {
+    useUIStore.getState().openLoginModal();
+    expect(useUIStore.getState().isLoginModalOpen).toBe(true);
+    useUIStore.getState().closeLoginModal();
+    expect(useUIStore.getState().isLoginModalOpen).toBe(false);
   });
 
   it('toggles and closes the mobile nav', () => {

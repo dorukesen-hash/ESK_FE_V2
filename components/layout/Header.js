@@ -6,8 +6,11 @@ import { useRouter } from 'next/navigation';
 import { Search, ShoppingCart, User } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useCartStore } from '@/stores/cartStore';
+import { useUIStore } from '@/stores/uiStore';
+import { CartDrawer } from './CartDrawer';
+import { LoginPopover } from './LoginPopover';
 
-function SearchForm({ className = '' }) {
+function SearchForm() {
   const router = useRouter();
 
   function handleSubmit(event) {
@@ -17,11 +20,11 @@ function SearchForm({ className = '' }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className={`flex w-full ${className}`} role="search">
+    <form onSubmit={handleSubmit} className="min-w-0 flex-1" role="search">
       <label htmlFor="header-search" className="sr-only">
         Search products
       </label>
-      <div className="relative w-full">
+      <div className="relative">
         <Search
           aria-hidden="true"
           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
@@ -43,28 +46,49 @@ export function Header() {
   const itemCount = useCartStore((state) =>
     state.items.reduce((total, item) => total + item.quantity, 0)
   );
+  const openCartDrawer = useUIStore((state) => state.openCartDrawer);
+  const openLoginModal = useUIStore((state) => state.openLoginModal);
 
   return (
     <header className="sticky top-0 z-10 border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-6 py-3">
+      <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-3">
         <Link href="/" className="shrink-0">
-          <Image src="/esk-icon.png" alt="ESK Packaging" width={140} height={20} className="h-5 w-auto" />
+          <Image
+            src="/esk-icon.png"
+            alt="ESK Packaging"
+            width={140}
+            height={20}
+            className="h-5 w-auto"
+          />
         </Link>
 
-        <SearchForm className="order-3 basis-full sm:order-none sm:basis-auto sm:flex-1" />
+        <SearchForm />
 
-        <div className="ml-auto flex items-center gap-4">
-          <Link
-            href={user ? '/account' : '/login'}
-            aria-label={user ? 'Account' : 'Login'}
-            className="flex min-h-11 min-w-11 items-center justify-center gap-2 text-text-primary hover:text-primary"
-          >
-            <User aria-hidden="true" className="h-5 w-5" />
-            <span className="hidden text-sm sm:inline">{user ? 'Account' : 'Login'}</span>
-          </Link>
+        <div className="flex shrink-0 items-center gap-4">
+          {user ? (
+            <Link
+              href="/account"
+              aria-label="Account"
+              className="flex min-h-11 min-w-11 items-center justify-center gap-2 text-text-primary hover:text-primary"
+            >
+              <User aria-hidden="true" className="h-5 w-5" />
+              <span className="hidden text-sm sm:inline">Account</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={openLoginModal}
+              aria-label="Login"
+              className="flex min-h-11 min-w-11 items-center justify-center gap-2 text-text-primary hover:text-primary"
+            >
+              <User aria-hidden="true" className="h-5 w-5" />
+              <span className="hidden text-sm sm:inline">Login</span>
+            </button>
+          )}
 
-          <Link
-            href="/cart"
+          <button
+            type="button"
+            onClick={openCartDrawer}
             aria-label={`Cart${itemCount > 0 ? `, ${itemCount} item${itemCount === 1 ? '' : 's'}` : ''}`}
             className="relative flex min-h-11 min-w-11 items-center justify-center text-text-primary hover:text-primary"
           >
@@ -74,9 +98,12 @@ export function Header() {
                 {itemCount}
               </span>
             )}
-          </Link>
+          </button>
         </div>
       </div>
+
+      <CartDrawer />
+      <LoginPopover />
     </header>
   );
 }
