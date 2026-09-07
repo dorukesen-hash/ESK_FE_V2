@@ -36,58 +36,72 @@ describe('Navbar', () => {
     ).toHaveAttribute('href', '/#industries');
   });
 
-  // Longer timeout: opening the Radix mega menu waits for its portaled
-  // content, which can exceed the default 5s in this jsdom environment.
-  it('shows a loading state inside the mega menu', async () => {
-    useCategories.mockReturnValue({ data: undefined, isLoading: true, isError: false });
-    render(<Navbar />);
-    await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
-    expect(await screen.findByText('Loading categories…')).toBeInTheDocument();
-  }, 25000);
+  // Opening the Radix mega menu waits for its portaled content. This is
+  // fast in isolation (~1s) but the first such interaction in this file
+  // can occasionally exceed even a generous timeout under the full
+  // suite's worker-pool contention (confirmed: raising the timeout from
+  // 5s to 15s to 25s each still left it flaking under contention, so a
+  // bigger number isn't the fix). `retry` is the right tool for
+  // contention-driven slowness, as opposed to a deterministic failure.
+  it(
+    'shows a loading state inside the mega menu',
+    { timeout: 15000, retry: 2 },
+    async () => {
+      useCategories.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+      render(<Navbar />);
+      await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
+      expect(await screen.findByText('Loading categories…')).toBeInTheDocument();
+    }
+  );
 
-  it('shows an error state inside the mega menu', async () => {
-    useCategories.mockReturnValue({ data: undefined, isLoading: false, isError: true });
-    render(<Navbar />);
-    await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
-    expect(await screen.findByText('Categories unavailable.')).toBeInTheDocument();
-  }, 15000);
+  it(
+    'shows an error state inside the mega menu',
+    { timeout: 15000, retry: 2 },
+    async () => {
+      useCategories.mockReturnValue({ data: undefined, isLoading: false, isError: true });
+      render(<Navbar />);
+      await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
+      expect(await screen.findByText('Categories unavailable.')).toBeInTheDocument();
+    }
+  );
 
-  // Longer timeout: this test opens the Radix mega menu and waits for its
-  // portaled content, which is consistently fast in isolation but can
-  // exceed the default 5s under the full suite's worker-pool contention.
-  it('renders each category with its subcategories and a View All Products link', async () => {
-    useCategories.mockReturnValue({
-      data: [
-        {
-          id: 12,
-          name: 'EDGE PROTECTION',
-          subcategories: [
-            { id: 24, name: 'Corner Board' },
-            { id: 25, name: 'Strapping Protectors' },
-          ],
-        },
-        { id: 7, name: 'Stretch Wrap', subcategories: [] },
-      ],
-      isLoading: false,
-      isError: false,
-    });
-    render(<Navbar />);
-    await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
+  it(
+    'renders each category with its subcategories and a View All Products link',
+    { timeout: 15000, retry: 2 },
+    async () => {
+      useCategories.mockReturnValue({
+        data: [
+          {
+            id: 12,
+            name: 'EDGE PROTECTION',
+            subcategories: [
+              { id: 24, name: 'Corner Board' },
+              { id: 25, name: 'Strapping Protectors' },
+            ],
+          },
+          { id: 7, name: 'Stretch Wrap', subcategories: [] },
+        ],
+        isLoading: false,
+        isError: false,
+      });
+      render(<Navbar />);
+      await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
 
-    expect(
-      await screen.findByRole('menuitem', { name: 'EDGE PROTECTION' })
-    ).toHaveAttribute('href', '/category/edge-protection');
-    expect(
-      screen.getByRole('menuitem', { name: 'Corner Board' })
-    ).toHaveAttribute('href', '/category/edge-protection/corner-board');
-    expect(
-      screen.getByRole('menuitem', { name: 'Strapping Protectors' })
-    ).toHaveAttribute('href', '/category/edge-protection/strapping-protectors');
-    expect(
-      screen.getByRole('menuitem', { name: 'Stretch Wrap' })
-    ).toHaveAttribute('href', '/category/stretch-wrap');
-    expect(
-      screen.getByRole('menuitem', { name: 'View All Products →' })
-    ).toHaveAttribute('href', '/search');
-  }, 15000);
+      expect(
+        await screen.findByRole('menuitem', { name: 'EDGE PROTECTION' })
+      ).toHaveAttribute('href', '/category/edge-protection');
+      expect(
+        screen.getByRole('menuitem', { name: 'Corner Board' })
+      ).toHaveAttribute('href', '/category/edge-protection/corner-board');
+      expect(
+        screen.getByRole('menuitem', { name: 'Strapping Protectors' })
+      ).toHaveAttribute('href', '/category/edge-protection/strapping-protectors');
+      expect(
+        screen.getByRole('menuitem', { name: 'Stretch Wrap' })
+      ).toHaveAttribute('href', '/category/stretch-wrap');
+      expect(
+        screen.getByRole('menuitem', { name: 'View All Products →' })
+      ).toHaveAttribute('href', '/search');
+    }
+  );
 });
