@@ -1,10 +1,13 @@
 'use client';
 
 import * as Dialog from '@radix-ui/react-dialog';
+import Image from 'next/image';
 import Link from 'next/link';
 import { X } from 'lucide-react';
 import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
+import { useVariantsByIds } from '@/hooks/useVariantsByIds';
+import { QuantityInput } from '@/components/catalog/QuantityInput';
 
 export function CartDrawer() {
   const isOpen = useUIStore((state) => state.isCartDrawerOpen);
@@ -12,6 +15,9 @@ export function CartDrawer() {
   const items = useCartStore((state) => state.items);
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
+
+  const { data: lines } = useVariantsByIds(items.map((item) => item.variantId));
+  const linesByVariantId = new Map((lines ?? []).map((line) => [line.id, line]));
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && closeCartDrawer()}>
@@ -35,46 +41,46 @@ export function CartDrawer() {
               <p className="text-sm text-text-muted">Your cart is empty.</p>
             ) : (
               <ul className="space-y-4">
-                {items.map((item) => (
-                  <li
-                    key={`${item.variantId}-${item.isPallet}`}
-                    className="flex items-center justify-between gap-3 border-b border-border pb-4"
-                  >
-                    <div>
-                      {/* Only variantId is available until the product/variant
-                          data-fetching layer exists; name/price/image come later. */}
-                      <p className="text-sm font-medium text-text-primary">
-                        {item.variantId}
-                      </p>
-                      {item.isPallet && (
-                        <p className="text-xs text-text-muted">Pallet</p>
-                      )}
-                      <label className="mt-1 flex items-center gap-2 text-xs text-text-muted">
-                        Qty
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={(event) =>
-                            updateQuantity(
-                              item.variantId,
-                              Number(event.target.value) || 1,
-                              item.isPallet
-                            )
-                          }
-                          className="w-14 rounded border border-border px-2 py-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                      </label>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeItem(item.variantId, item.isPallet)}
-                      className="text-xs text-text-muted transition-colors hover:text-primary"
+                {items.map((item) => {
+                  const line = linesByVariantId.get(item.variantId);
+                  return (
+                    <li
+                      key={`${item.variantId}-${item.isPallet}`}
+                      className="flex items-center gap-3 border-b border-border pb-4"
                     >
-                      Remove
-                    </button>
-                  </li>
-                ))}
+                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-button-secondary-bg">
+                        {line?.image && (
+                          <Image src={line.image} alt="" fill sizes="56px" className="object-cover" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-text-primary">
+                          {line?.title ?? `Item ${item.variantId}`}
+                        </p>
+                        {item.isPallet && (
+                          <p className="text-xs text-text-muted">Pallet</p>
+                        )}
+                        <label className="mt-1 flex items-center gap-2 text-xs text-text-muted">
+                          Qty
+                          <QuantityInput
+                            value={item.quantity}
+                            onChange={(quantity) =>
+                              updateQuantity(item.variantId, quantity, item.isPallet)
+                            }
+                            className="w-14 rounded border border-border px-2 py-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                        </label>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.variantId, item.isPallet)}
+                        className="self-start text-xs text-text-muted transition-colors hover:text-primary"
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

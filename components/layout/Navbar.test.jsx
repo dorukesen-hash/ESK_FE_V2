@@ -50,6 +50,9 @@ describe('Navbar', () => {
     expect(await screen.findByText('Categories unavailable.')).toBeInTheDocument();
   });
 
+  // Longer timeout: this test opens the Radix mega menu and waits for its
+  // portaled content, which is consistently fast in isolation but can
+  // exceed the default 5s under the full suite's worker-pool contention.
   it('renders each category with its subcategories and a View All Products link', async () => {
     useCategories.mockReturnValue({
       data: [
@@ -84,5 +87,5 @@ describe('Navbar', () => {
     expect(
       screen.getByRole('menuitem', { name: 'View All Products →' })
     ).toHaveAttribute('href', '/search');
-  });
+  }, 15000);
 });
