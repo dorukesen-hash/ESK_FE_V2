@@ -36,19 +36,21 @@ describe('Navbar', () => {
     ).toHaveAttribute('href', '/#industries');
   });
 
+  // Longer timeout: opening the Radix mega menu waits for its portaled
+  // content, which can exceed the default 5s in this jsdom environment.
   it('shows a loading state inside the mega menu', async () => {
     useCategories.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     render(<Navbar />);
     await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
     expect(await screen.findByText('Loading categories…')).toBeInTheDocument();
-  });
+  }, 25000);
 
   it('shows an error state inside the mega menu', async () => {
     useCategories.mockReturnValue({ data: undefined, isLoading: false, isError: true });
     render(<Navbar />);
     await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
     expect(await screen.findByText('Categories unavailable.')).toBeInTheDocument();
-  });
+  }, 15000);
 
   // Longer timeout: this test opens the Radix mega menu and waits for its
   // portaled content, which is consistently fast in isolation but can

@@ -1,0 +1,135 @@
+'use client';
+
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import Link from 'next/link';
+import { useRegister } from '@/hooks/useRegister';
+
+const schema = yup.object({
+  name: yup.string().required('First name is required'),
+  surname: yup.string().required('Last name is required'),
+  email: yup.string().email('Enter a valid email').required('Email is required'),
+  password: yup
+    .string()
+    .required('Password is required')
+    .min(8, 'Use at least 8 characters'),
+});
+
+const fieldClass =
+  'mt-1 w-full rounded-md border border-border px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary';
+
+export function RegisterView() {
+  const registerMutation = useRegister();
+  const [serverError, setServerError] = useState(null);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: yupResolver(schema) });
+
+  async function onSubmit(values) {
+    setServerError(null);
+    try {
+      await registerMutation.mutateAsync(values);
+      setIsRegistered(true);
+    } catch (error) {
+      setServerError(
+        error?.response?.data?.message ?? 'Registration failed. Please try again.'
+      );
+    }
+  }
+
+  if (isRegistered) {
+    return (
+      <main className="mx-auto max-w-sm px-6 py-16 text-center">
+        <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
+          Account created
+        </h1>
+        <p className="mt-2 text-text-muted">
+          You can now log in with your new account.
+        </p>
+        <Link
+          href="/login"
+          className="mt-6 inline-flex h-12 items-center rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
+        >
+          Go to Login
+        </Link>
+      </main>
+    );
+  }
+
+  return (
+    <main className="mx-auto max-w-sm px-6 py-16">
+      <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
+        Create an account
+      </h1>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4" noValidate>
+        <div>
+          <label htmlFor="name" className="text-sm font-medium text-text-primary">
+            First name
+          </label>
+          <input id="name" {...register('name')} className={fieldClass} />
+          {errors.name && (
+            <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="surname" className="text-sm font-medium text-text-primary">
+            Last name
+          </label>
+          <input id="surname" {...register('surname')} className={fieldClass} />
+          {errors.surname && (
+            <p className="mt-1 text-xs text-red-600">{errors.surname.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="email" className="text-sm font-medium text-text-primary">
+            Email
+          </label>
+          <input id="email" type="email" {...register('email')} className={fieldClass} />
+          {errors.email && (
+            <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="password" className="text-sm font-medium text-text-primary">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            {...register('password')}
+            className={fieldClass}
+          />
+          {errors.password && (
+            <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
+          )}
+        </div>
+
+        {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+
+        <button
+          type="submit"
+          disabled={registerMutation.isPending}
+          className="inline-flex h-12 w-full items-center justify-center rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover disabled:opacity-50"
+        >
+          {registerMutation.isPending ? 'Creating account…' : 'Create Account'}
+        </button>
+      </form>
+
+      <p className="mt-4 text-center text-sm text-text-muted">
+        Already have an account?{' '}
+        <Link href="/login" className="text-primary hover:text-primary-hover">
+          Log in
+        </Link>
+      </p>
+    </main>
+  );
+}

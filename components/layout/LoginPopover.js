@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -7,6 +8,8 @@ import Link from 'next/link';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useUIStore } from '@/stores/uiStore';
+import { useAuthStore } from '@/stores/authStore';
+import { useLogin } from '@/hooks/useLogin';
 
 const schema = yup.object({
   email: yup.string().email('Enter a valid email').required('Email is required'),
@@ -16,6 +19,9 @@ const schema = yup.object({
 export function LoginPopover() {
   const isOpen = useUIStore((state) => state.isLoginModalOpen);
   const closeLoginModal = useUIStore((state) => state.closeLoginModal);
+  const setUser = useAuthStore((state) => state.setUser);
+  const loginMutation = useLogin();
+  const [serverError, setServerError] = useState(null);
   const {
     register,
     handleSubmit,
@@ -23,17 +29,24 @@ export function LoginPopover() {
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
 
-  function onSubmit(values) {
-    // TODO: wire to POST /api/auth/login once a local/staging API is configured
-    // (see lib/api.js) — form is UI-only for now, per product decision.
-    console.log('login submit', values);
-    reset();
-    closeLoginModal();
+  async function onSubmit(values) {
+    setServerError(null);
+    try {
+      const user = await loginMutation.mutateAsync(values);
+      setUser(user);
+      reset();
+      closeLoginModal();
+    } catch (error) {
+      setServerError(
+        error?.response?.data?.message ?? 'Login failed. Please try again.'
+      );
+    }
   }
 
   function handleOpenChange(open) {
     if (!open) {
       reset();
+      setServerError(null);
       closeLoginModal();
     }
   }
@@ -71,8 +84,10 @@ export function LoginPopover() {
           )}
         </div>
 
-        <Button type="submit" className="w-full">
-          Log in
+        {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+
+        <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+          {loginMutation.isPending ? 'Logging in…' : 'Log in'}
         </Button>
       </form>
 

@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useVariantsByIds } from '@/hooks/useVariantsByIds';
+import { useLogin } from '@/hooks/useLogin';
 
 const push = vi.fn();
 vi.mock('next/navigation', () => ({
@@ -13,6 +14,10 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/hooks/useVariantsByIds', () => ({
   useVariantsByIds: vi.fn(),
+}));
+
+vi.mock('@/hooks/useLogin', () => ({
+  useLogin: vi.fn(),
 }));
 
 import { Header } from './Header';
@@ -24,6 +29,7 @@ describe('Header', () => {
     useCartStore.getState().clear();
     useUIStore.setState({ isCartDrawerOpen: false, isLoginModalOpen: false });
     useVariantsByIds.mockReturnValue({ data: undefined, isLoading: false, isError: false });
+    useLogin.mockReturnValue({ mutateAsync: vi.fn(), isPending: false });
   });
 
   it('shows a Login button when there is no user', () => {
