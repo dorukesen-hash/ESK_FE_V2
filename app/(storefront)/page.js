@@ -3,6 +3,9 @@ import { ArrowRight } from 'lucide-react';
 import { HeroBanner } from '@/components/home/HeroBanner';
 import { CategoryShowcase } from '@/components/home/CategoryShowcase';
 import { FeaturedProducts } from '@/components/home/FeaturedProducts';
+import { ProductGuidance } from '@/components/home/ProductGuidance';
+import { Industries } from '@/components/home/Industries';
+import { QuoteSection } from '@/components/home/QuoteSection';
 
 export default function HomePage() {
   return (
@@ -38,6 +41,9 @@ export default function HomePage() {
       </section>
 
       <FeaturedProducts />
+      <ProductGuidance />
+      <Industries />
+      <QuoteSection />
     </main>
   );
 }

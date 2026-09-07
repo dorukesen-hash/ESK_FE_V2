@@ -18,16 +18,22 @@ describe('Navbar', () => {
     );
   });
 
-  it('renders Industries We Serve and Knowledge Center as disabled, non-navigating items', () => {
+  it('renders Knowledge Center as a disabled, non-navigating item', () => {
     useCategories.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     render(<Navbar />);
 
-    for (const label of ['Industries We Serve', 'Knowledge Center']) {
-      const item = screen.getByText(label).closest('[aria-disabled="true"]');
-      expect(item).toBeInTheDocument();
-      expect(item.tagName).not.toBe('A');
-      expect(screen.getAllByText('Coming Soon').length).toBeGreaterThan(0);
-    }
+    const item = screen.getByText('Knowledge Center').closest('[aria-disabled="true"]');
+    expect(item).toBeInTheDocument();
+    expect(item.tagName).not.toBe('A');
+    expect(screen.getByText('Coming Soon')).toBeInTheDocument();
+  });
+
+  it('renders Industries We Serve as a real link to the homepage section', () => {
+    useCategories.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+    render(<Navbar />);
+    expect(
+      screen.getByRole('link', { name: 'Industries We Serve' })
+    ).toHaveAttribute('href', '/#industries');
   });
 
   it('shows a loading state inside the mega menu', async () => {

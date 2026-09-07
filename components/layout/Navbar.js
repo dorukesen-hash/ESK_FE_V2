@@ -9,11 +9,11 @@ import { slugify } from '@/lib/slugify';
 
 // Item set mirrors ESK-Website-Frontend's navbar (content/navigation.js):
 // a "Shop Products" mega menu followed by Industries We Serve, Knowledge
-// Center, About Us. Industries We Serve and Knowledge Center have no
-// corresponding page/section here yet, so — matching that project's own
-// "never a dead link" rule — they render disabled with a "Coming Soon" tag
-// instead of linking anywhere.
-const comingSoonLinks = ['Industries We Serve', 'Knowledge Center'];
+// Center, About Us. Knowledge Center has no corresponding page here yet, so
+// — matching that project's own "never a dead link" rule — it renders
+// disabled with a "Coming Soon" tag instead of linking anywhere. Industries
+// We Serve now has a real homepage section (#industries).
+const comingSoonLinks = ['Knowledge Center'];
 
 const itemClass =
   'flex h-14 shrink-0 items-center whitespace-nowrap px-4 text-sm font-semibold text-on-ink transition-colors hover:bg-ink-elevated hover:text-accent active:translate-y-px';
@@ -116,6 +116,10 @@ export function Navbar() {
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
+
+        <Link href="/#industries" className={itemClass}>
+          Industries We Serve
+        </Link>
 
         {comingSoonLinks.map((label) => (
           <ComingSoonItem key={label} label={label} />
