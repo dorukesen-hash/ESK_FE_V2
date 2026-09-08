@@ -1,25 +1,27 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, Download, MapPin } from 'lucide-react';
+import {
+  ArrowLeft,
+  Download,
+  MapPin,
+  Truck,
+  RotateCcw,
+  RefreshCw,
+  Plus,
+} from 'lucide-react';
 import { useAccountOrders } from '@/hooks/useAccountOrders';
+import { useCartStore } from '@/stores/cartStore';
+import { useUIStore } from '@/stores/uiStore';
 import { StatusPill } from './StatusPill';
+import { formatDate, formatOrderNumber, isCancelled } from './orderHelpers';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-function formatDate(value) {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
 export function OrderDetailView({ orderNumber }) {
   const { data: orders, isLoading, isError } = useAccountOrders();
+  const addItem = useCartStore((state) => state.addItem);
+  const openCartDrawer = useUIStore((state) => state.openCartDrawer);
 
   if (isLoading) {
     return <p className="text-sm text-text-muted">Loading order…</p>;
@@ -61,10 +63,26 @@ export function OrderDetailView({ orderNumber }) {
   const items = order.orderitems ?? [];
   const shipment = order.shipment;
   const billing = order.billing;
+  const cancelled = isCancelled(order);
   const subtotal = items.reduce(
     (sum, item) => sum + Number(item.price ?? 0) * Number(item.quantity ?? 0),
     0
   );
+  const amountRefunded = Number(order.amountRefunded ?? 0);
+
+  function addItemToCart(item) {
+    if (!item.variant_id) return;
+    addItem(item.variant_id, item.quantity || 1, false);
+    openCartDrawer();
+  }
+
+  function reorderAll() {
+    const reorderable = items.filter((item) => item.variant_id);
+    reorderable.forEach((item) => addItem(item.variant_id, item.quantity || 1, false));
+    if (reorderable.length > 0) openCartDrawer();
+  }
+
+  const hasReorderableItems = items.some((item) => item.variant_id);
 
   return (
     <div>
@@ -76,11 +94,24 @@ export function OrderDetailView({ orderNumber }) {
         Back to order history
       </Link>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
-          Order {order.orderNumber ?? order.uniqueId}
-        </h1>
-        <StatusPill status={order.orderstatus?.name} />
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
+            Order {formatOrderNumber(order)}
+          </h1>
+          <StatusPill status={order.orderstatus?.name} />
+        </div>
+
+        {hasReorderableItems && (
+          <button
+            type="button"
+            onClick={reorderAll}
+            className="inline-flex h-10 items-center gap-2 rounded-full bg-accent px-4 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
+          >
+            <RefreshCw aria-hidden="true" className="h-4 w-4" />
+            Reorder all items
+          </button>
+        )}
       </div>
 
       <dl className="mt-6 grid grid-cols-2 gap-6 border-y border-border py-6 text-sm sm:grid-cols-4">
@@ -89,8 +120,14 @@ export function OrderDetailView({ orderNumber }) {
           <dd className="mt-1 font-medium text-text-primary">{formatDate(order.createdAt)}</dd>
         </div>
         <div>
-          <dt className="text-text-muted">Tracking</dt>
+          <dt className="flex items-center gap-1.5 text-text-muted">
+            <Truck aria-hidden="true" className="h-3.5 w-3.5" />
+            Tracking
+          </dt>
           <dd className="mt-1 font-medium text-text-primary">
+            {shipment?.carrier?.name && (
+              <span className="text-text-muted">{shipment.carrier.name} · </span>
+            )}
             {shipment?.tracking ?? order.trackingNumber ?? '—'}
           </dd>
         </div>
@@ -106,6 +143,15 @@ export function OrderDetailView({ orderNumber }) {
         </div>
       </dl>
 
+      {amountRefunded > 0 && (
+        <div className="mt-6 flex items-center gap-2 rounded-lg bg-purple-50 px-4 py-3 text-sm font-medium text-purple-700">
+          <RotateCcw aria-hidden="true" className="h-4 w-4 shrink-0" />
+          {order.amountRemaining > 0
+            ? `$${amountRefunded.toFixed(2)} refunded, $${Number(order.amountRemaining).toFixed(2)} remaining.`
+            : `$${amountRefunded.toFixed(2)} refunded in full.`}
+        </div>
+      )}
+
       {items.length > 0 && (
         <div className="mt-8">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-text-muted">
@@ -118,6 +164,7 @@ export function OrderDetailView({ orderNumber }) {
                 <th className="py-2 font-medium">Qty</th>
                 <th className="py-2 font-medium">Price</th>
                 <th className="py-2 font-medium">Line total</th>
+                <th className="py-2" />
               </tr>
             </thead>
             <tbody>
@@ -131,6 +178,18 @@ export function OrderDetailView({ orderNumber }) {
                   <td className="py-3 text-text-muted">
                     $
                     {(Number(item.price ?? 0) * Number(item.quantity ?? 0)).toFixed(2)}
+                  </td>
+                  <td className="py-3 text-right">
+                    {item.variant_id && (
+                      <button
+                        type="button"
+                        onClick={() => addItemToCart(item)}
+                        className="group inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
+                      >
+                        <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+                        Add to cart
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -178,7 +237,7 @@ export function OrderDetailView({ orderNumber }) {
         )}
       </div>
 
-      {API_URL && (
+      {API_URL && !cancelled && (
         <div className="mt-8 flex flex-wrap gap-4">
           <a
             href={`${API_URL}/invoices/pdf/${order.id}`}
@@ -199,6 +258,12 @@ export function OrderDetailView({ orderNumber }) {
             Download packing slip
           </a>
         </div>
+      )}
+
+      {cancelled && (
+        <p className="mt-8 text-sm text-text-muted">
+          Invoice and packing slip are not available for cancelled orders.
+        </p>
       )}
     </div>
   );

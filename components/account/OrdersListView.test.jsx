@@ -34,7 +34,7 @@ describe('OrdersListView', () => {
           orderNumber: 'ESK-1001',
           createdAt: '2026-01-15T00:00:00.000Z',
           price: '129.50',
-          orderstatus: { id: 2, name: 'Shipped' },
+          orderstatus: { id: 3, name: 'Completed' },
         },
       ],
       isLoading: false,
@@ -42,12 +42,32 @@ describe('OrdersListView', () => {
     });
     render(<OrdersListView />);
 
-    expect(screen.getByText('ESK-1001')).toBeInTheDocument();
-    expect(screen.getByText('Shipped')).toBeInTheDocument();
+    expect(screen.getByText('#ESK-1001')).toBeInTheDocument();
+    expect(screen.getByText('Completed')).toBeInTheDocument();
     expect(screen.getByText('$129.50')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'View' })).toHaveAttribute(
       'href',
       '/account/orders/ESK-1001'
     );
+  });
+
+  it('shows a refunded amount when the order has one', () => {
+    useAccountOrders.mockReturnValue({
+      data: [
+        {
+          id: 1,
+          orderNumber: 'ESK-1002',
+          createdAt: '2026-01-15T00:00:00.000Z',
+          price: '129.50',
+          amountRefunded: 40,
+          orderstatus: { id: 3, name: 'Completed' },
+        },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+    render(<OrdersListView />);
+
+    expect(screen.getByText('$40.00 refunded')).toBeInTheDocument();
   });
 });

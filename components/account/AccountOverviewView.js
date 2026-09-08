@@ -5,6 +5,7 @@ import { Package, MapPin, FileText, ArrowRight, ShoppingBag } from 'lucide-react
 import { useAuthStore } from '@/stores/authStore';
 import { useAccountOrders } from '@/hooks/useAccountOrders';
 import { StatusPill } from './StatusPill';
+import { formatDate, formatOrderNumber } from './orderHelpers';
 
 const quickLinks = [
   {
@@ -26,17 +27,6 @@ const quickLinks = [
     icon: FileText,
   },
 ];
-
-function formatDate(value) {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
 
 export function AccountOverviewView() {
   const user = useAuthStore((state) => state.user);
@@ -117,7 +107,7 @@ export function AccountOverviewView() {
                 >
                   <div className="min-w-0">
                     <p className="font-medium text-text-primary">
-                      {order.orderNumber ?? order.uniqueId}
+                      {formatOrderNumber(order)}
                     </p>
                     <p className="text-sm text-text-muted">{formatDate(order.createdAt)}</p>
                   </div>
