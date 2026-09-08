@@ -13,33 +13,43 @@ vi.mock('@/hooks/useLogout', () => ({
   useLogout: vi.fn(),
 }));
 
-import { AccountNav } from './AccountNav';
+import { AccountSidebar } from './AccountSidebar';
 
-describe('AccountNav', () => {
+describe('AccountSidebar', () => {
   const mutateAsync = vi.fn();
 
   beforeEach(() => {
     pathname = '/account';
     mutateAsync.mockReset().mockResolvedValue({ message: 'Logout successful!' });
     useLogout.mockReturnValue({ mutateAsync, isPending: false });
-    useAuthStore.setState({ user: { id: 1 }, isLoading: false });
+    useAuthStore.setState({
+      user: { id: 1, name: 'Jane', surname: 'Doe', email: 'jane@example.com' },
+      isLoading: false,
+    });
+  });
+
+  it('shows the user initials, name, and email', () => {
+    render(<AccountSidebar />);
+    expect(screen.getByText('JD')).toBeInTheDocument();
+    expect(screen.getByText('Jane Doe')).toBeInTheDocument();
+    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
+  });
+
+  it('falls back to the email initial when no name is set', () => {
+    useAuthStore.setState({ user: { id: 1, email: 'jane@example.com' }, isLoading: false });
+    render(<AccountSidebar />);
+    expect(screen.getByText('J')).toBeInTheDocument();
   });
 
   it('highlights the active section', () => {
     pathname = '/account/orders';
-    render(<AccountNav />);
+    render(<AccountSidebar />);
     expect(screen.getByRole('link', { name: 'Orders' })).toHaveClass('bg-ink');
     expect(screen.getByRole('link', { name: 'Overview' })).not.toHaveClass('bg-ink');
   });
 
-  // AccountNav itself does not navigate on logout - every /account route is
-  // wrapped in AuthGuard, which already redirects to /login the instant
-  // `user` goes null. A second, separately-timed push() from here raced
-  // AuthGuard's own redirect and wasn't reliably last (confirmed live: it
-  // landed on /login about as often as /). Letting AuthGuard own the
-  // redirect removes the race entirely.
   it('logs out and clears the user, leaving the redirect to AuthGuard', async () => {
-    render(<AccountNav />);
+    render(<AccountSidebar />);
     await userEvent.click(screen.getByRole('button', { name: 'Log out' }));
 
     expect(mutateAsync).toHaveBeenCalled();
