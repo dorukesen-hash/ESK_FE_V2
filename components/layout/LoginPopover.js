@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/Button';
 import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useLogin } from '@/hooks/useLogin';
+import { AuthDivider } from '@/components/auth/AuthDivider';
+import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton';
 
 const schema = yup.object({
   email: yup.string().email('Enter a valid email').required('Email is required'),
@@ -53,6 +55,9 @@ export function LoginPopover() {
 
   return (
     <Modal open={isOpen} onOpenChange={handleOpenChange} title="Log in">
+      <GoogleLoginButton />
+      <AuthDivider />
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div>
           <label htmlFor="login-email" className="text-sm font-medium text-text-primary">

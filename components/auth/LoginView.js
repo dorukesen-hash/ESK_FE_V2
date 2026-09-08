@@ -9,6 +9,8 @@ import { useRouter } from 'next/navigation';
 import { useLogin } from '@/hooks/useLogin';
 import { useAuthStore } from '@/stores/authStore';
 import { AuthShell } from './AuthShell';
+import { AuthDivider } from './AuthDivider';
+import { GoogleLoginButton } from './GoogleLoginButton';
 
 const schema = yup.object({
   email: yup.string().email('Enter a valid email').required('Email is required'),
@@ -55,7 +57,12 @@ export function LoginView() {
         Log in
       </h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4" noValidate>
+      <div className="mt-8">
+        <GoogleLoginButton />
+        <AuthDivider />
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div>
           <label htmlFor="email" className="text-sm font-medium text-text-primary">
             Email
