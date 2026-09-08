@@ -2,7 +2,11 @@ import { LegalPage, LegalSection } from './LegalPage';
 
 export function ReturnRefundPolicyView() {
   return (
-    <LegalPage title="Return & Refund Policy">
+    <LegalPage
+      kicker="100% Satisfaction Guarantee"
+      title="Return & Refund Policy"
+      subtitle="Not quite right? Here's how returns, restocking, and refunds work."
+    >
       <LegalSection>
         <p>
           If you&apos;re not 100% satisfied with your order, we accept

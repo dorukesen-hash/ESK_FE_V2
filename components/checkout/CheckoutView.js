@@ -9,15 +9,19 @@ import { useVariantsByIds } from '@/hooks/useVariantsByIds';
 import { useShippingOptions } from '@/hooks/useShippingOptions';
 import { useCreatePaymentIntent } from '@/hooks/useCreatePaymentIntent';
 import { useCreateOrder } from '@/hooks/useCreateOrder';
+import { ShoppingBag } from 'lucide-react';
 import { AddressForm } from './AddressForm';
 import { PaymentSection } from './PaymentSection';
+import { CheckoutStep } from './CheckoutStep';
 
 function OrderSummary({ lines, shippingPrice }) {
   const subtotal = lines.reduce((total, line) => total + (line.lineTotal ?? 0), 0);
   const total = subtotal + (shippingPrice ?? 0);
 
   return (
-    <div className="rounded-lg border border-border p-6">
+    <div className="overflow-hidden rounded-lg border border-border">
+      <div aria-hidden="true" className="h-1 bg-accent" />
+      <div className="p-6">
       <h2 className="text-sm font-bold uppercase tracking-wide text-text-primary">
         Order Summary
       </h2>
@@ -52,6 +56,7 @@ function OrderSummary({ lines, shippingPrice }) {
       <p className="mt-3 text-xs text-text-muted">
         Tax is calculated and confirmed at payment.
       </p>
+      </div>
     </div>
   );
 }
@@ -74,11 +79,15 @@ export function CheckoutView() {
 
   if (cartItems.length === 0) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
+      <main className="mx-auto max-w-3xl px-6 py-24 text-center">
+        <ShoppingBag aria-hidden="true" className="mx-auto h-10 w-10 text-accent" />
+        <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-text-primary">
           Your cart is empty
         </h1>
-        <Link href="/search" className="mt-4 inline-block text-primary hover:text-primary-hover">
+        <Link
+          href="/search"
+          className="mt-4 inline-block text-sm font-semibold text-primary hover:text-primary-hover"
+        >
           Browse products
         </Link>
       </main>
@@ -182,30 +191,25 @@ export function CheckoutView() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-16">
-      <h1 className="text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
+      <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
+        Almost There
+      </p>
+      <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
         Checkout
       </h1>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <div className="space-y-8">
-          <section>
-            <h2 className="text-sm font-bold uppercase tracking-wide text-text-primary">
-              Shipping Address
-            </h2>
-            <div className="mt-4">
-              <AddressForm
-                onSubmit={handleAddressSubmit}
-                isSubmitting={shippingMutation.isPending}
-              />
-            </div>
-          </section>
+          <CheckoutStep number="1" title="Shipping Address">
+            <AddressForm
+              onSubmit={handleAddressSubmit}
+              isSubmitting={shippingMutation.isPending}
+            />
+          </CheckoutStep>
 
           {shippingMutation.isSuccess && (
-            <section>
-              <h2 className="text-sm font-bold uppercase tracking-wide text-text-primary">
-                Shipping Options
-              </h2>
-              <div className="mt-4 space-y-2">
+            <CheckoutStep number="2" title="Shipping Options">
+              <div className="space-y-2">
                 {shippingMutation.data.length === 0 ? (
                   <p className="text-sm text-text-muted">
                     No shipping options are available for this address right now.
@@ -214,7 +218,7 @@ export function CheckoutView() {
                   shippingMutation.data.map((option, index) => (
                     <label
                       key={`${option.carrierName}-${index}`}
-                      className="flex items-center justify-between rounded-md border border-border p-3 text-sm"
+                      className="flex items-center justify-between rounded-md border border-border p-3 text-sm transition-colors has-[:checked]:border-primary"
                     >
                       <span className="flex items-center gap-3">
                         <input
@@ -233,7 +237,7 @@ export function CheckoutView() {
                   ))
                 )}
               </div>
-            </section>
+            </CheckoutStep>
           )}
 
           {shippingMutation.isError && (
@@ -243,21 +247,16 @@ export function CheckoutView() {
           )}
 
           {selectedOption && (
-            <section>
-              <h2 className="text-sm font-bold uppercase tracking-wide text-text-primary">
-                Payment
-              </h2>
-              <div className="mt-4">
-                <PaymentSection
-                  clientSecret={clientSecret}
-                  onConfirmed={handlePaymentConfirmed}
-                  isPlacingOrder={orderMutation.isPending}
-                />
-                {orderError && (
-                  <p className="mt-3 text-sm text-red-600">{orderError}</p>
-                )}
-              </div>
-            </section>
+            <CheckoutStep number="3" title="Payment">
+              <PaymentSection
+                clientSecret={clientSecret}
+                onConfirmed={handlePaymentConfirmed}
+                isPlacingOrder={orderMutation.isPending}
+              />
+              {orderError && (
+                <p className="mt-3 text-sm text-red-600">{orderError}</p>
+              )}
+            </CheckoutStep>
           )}
         </div>
 

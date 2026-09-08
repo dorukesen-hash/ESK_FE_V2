@@ -1,5 +1,6 @@
 'use client';
 
+import { FileText, Download } from 'lucide-react';
 import { useAccountInvoices } from '@/hooks/useAccountInvoices';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -28,7 +29,8 @@ export function InvoicesView() {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
+      <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">My Account</p>
+      <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary sm:text-3xl">
         Invoices
       </h1>
 
@@ -41,7 +43,10 @@ export function InvoicesView() {
       )}
 
       {invoices && invoices.length === 0 && (
-        <p className="mt-6 text-sm text-text-muted">No invoices yet.</p>
+        <div className="mt-10 flex flex-col items-center rounded-lg border border-dashed border-border py-16 text-center">
+          <FileText aria-hidden="true" className="h-8 w-8 text-accent" />
+          <p className="mt-3 text-sm text-text-muted">No invoices yet.</p>
+        </div>
       )}
 
       {invoices && invoices.length > 0 && (
@@ -74,8 +79,12 @@ export function InvoicesView() {
                         href={`${API_URL}/invoices/pdf/${order.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-semibold text-primary transition-colors hover:text-primary-hover"
+                        className="group inline-flex items-center gap-1.5 font-semibold text-primary transition-colors hover:text-primary-hover"
                       >
+                        <Download
+                          aria-hidden="true"
+                          className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5"
+                        />
                         Download
                       </a>
                     ) : (

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { CheckCircle2 } from 'lucide-react';
 import { useLastOrderStore } from '@/stores/lastOrderStore';
 
 export function OrderConfirmationView({ orderNumber }) {
@@ -30,7 +31,10 @@ export function OrderConfirmationView({ orderNumber }) {
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
-      <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-tint">
+        <CheckCircle2 aria-hidden="true" className="h-6 w-6 text-accent" />
+      </div>
+      <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-accent">
         Order Confirmed
       </p>
       <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">

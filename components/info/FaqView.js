@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { Search } from 'lucide-react';
 import { Accordion } from '@/components/ui/Accordion';
+import { InfoBanner } from './InfoBanner';
 
 const emailLink = (
   <a href="mailto:sales@eskpackaging.com" className="text-primary hover:text-primary-hover">
@@ -110,63 +112,78 @@ export function FaqView() {
   const query = search.trim().toLowerCase();
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-extrabold tracking-tight text-text-primary">
-        Frequently Asked Questions
-      </h1>
+    <main>
+      <InfoBanner
+        kicker="We're Here to Help"
+        title="Frequently Asked Questions"
+        subtitle="Ordering, shipping, returns, and billing — answered."
+      />
 
-      <div className="mt-6">
-        <label htmlFor="faq-search" className="sr-only">
-          Search FAQ
-        </label>
-        <input
-          id="faq-search"
-          type="search"
-          placeholder="Search FAQ…"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          className="w-full rounded-md border border-border px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-        />
+      <div className="mx-auto max-w-3xl px-6 py-16">
+        <div className="relative">
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
+          />
+          <label htmlFor="faq-search" className="sr-only">
+            Search FAQ
+          </label>
+          <input
+            id="faq-search"
+            type="search"
+            placeholder="Search FAQ…"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className="w-full rounded-full border border-border py-2.5 pl-11 pr-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+
+        <div className="mt-10 space-y-10">
+          {faqSections.map((section, index) => {
+            const items = section.items.filter((item) => matchesSearch(item, query));
+            if (items.length === 0) return null;
+            return (
+              <section key={section.id}>
+                <div className="flex items-baseline gap-4">
+                  <span aria-hidden="true" className="text-2xl font-black text-accent/30">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <h2 className="text-lg font-bold text-text-primary">{section.label}</h2>
+                </div>
+                <div className="mt-2">
+                  <Accordion items={items} />
+                </div>
+              </section>
+            );
+          })}
+        </div>
+
+        <section className="mt-10 border-t border-border pt-8">
+          <h2 className="text-lg font-bold text-text-primary">Policies</h2>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li>
+              <Link href="/terms-and-conditions" className="text-primary hover:text-primary-hover">
+                Terms & Conditions
+              </Link>
+            </li>
+            <li>
+              <Link href="/privacy-policy" className="text-primary hover:text-primary-hover">
+                Privacy Policy
+              </Link>
+            </li>
+            <li>
+              <Link href="/shipping-policy" className="text-primary hover:text-primary-hover">
+                Shipping Policy
+              </Link>
+            </li>
+            <li>
+              <Link href="/return-refund-policy" className="text-primary hover:text-primary-hover">
+                Return & Refund Policy
+              </Link>
+            </li>
+          </ul>
+        </section>
       </div>
-
-      <div className="mt-8 space-y-10">
-        {faqSections.map((section) => {
-          const items = section.items.filter((item) => matchesSearch(item, query));
-          if (items.length === 0) return null;
-          return (
-            <section key={section.id}>
-              <h2 className="text-lg font-bold text-text-primary">{section.label}</h2>
-              <Accordion items={items} />
-            </section>
-          );
-        })}
-      </div>
-
-      <section className="mt-10 border-t border-border pt-8">
-        <h2 className="text-lg font-bold text-text-primary">Policies</h2>
-        <ul className="mt-3 space-y-2 text-sm">
-          <li>
-            <Link href="/terms-and-conditions" className="text-primary hover:text-primary-hover">
-              Terms & Conditions
-            </Link>
-          </li>
-          <li>
-            <Link href="/privacy-policy" className="text-primary hover:text-primary-hover">
-              Privacy Policy
-            </Link>
-          </li>
-          <li>
-            <Link href="/shipping-policy" className="text-primary hover:text-primary-hover">
-              Shipping Policy
-            </Link>
-          </li>
-          <li>
-            <Link href="/return-refund-policy" className="text-primary hover:text-primary-hover">
-              Return & Refund Policy
-            </Link>
-          </li>
-        </ul>
-      </section>
     </main>
   );
 }

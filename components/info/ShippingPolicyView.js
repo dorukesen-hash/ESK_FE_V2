@@ -2,7 +2,11 @@ import { LegalPage, LegalSection } from './LegalPage';
 
 export function ShippingPolicyView() {
   return (
-    <LegalPage title="Shipping Policy">
+    <LegalPage
+      kicker="Fast, Reliable Freight"
+      title="Shipping Policy"
+      subtitle="How your order moves from our dock to your door."
+    >
       <LegalSection>
         <p>
           At ESK Packaging, we are committed to fast, reliable shipping. We

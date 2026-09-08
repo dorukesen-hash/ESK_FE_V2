@@ -3,7 +3,9 @@ import { LegalPage, LegalSection } from './LegalPage';
 export function TermsAndConditionsView() {
   return (
     <LegalPage
+      kicker="The Fine Print"
       title="Terms and Conditions of Sale and Website Use"
+      subtitle="The agreement that governs every order and every visit to our site."
       meta={
         <>
           <p>Effective Date: July 10, 2025</p>

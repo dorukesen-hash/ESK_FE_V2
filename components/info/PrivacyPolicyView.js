@@ -2,7 +2,11 @@ import { LegalPage, LegalSection } from './LegalPage';
 
 export function PrivacyPolicyView() {
   return (
-    <LegalPage title="Privacy Policy">
+    <LegalPage
+      kicker="Trust & Transparency"
+      title="Privacy Policy"
+      subtitle="How we collect, use, and safeguard your information."
+    >
       <LegalSection>
         <p>
           At ESK Packaging LLC (&quot;we,&quot; &quot;us,&quot; or

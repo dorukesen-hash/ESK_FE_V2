@@ -9,7 +9,9 @@ describe('TermsAndConditionsView', () => {
       screen.getByRole('heading', { name: 'Terms and Conditions of Sale and Website Use' })
     ).toBeInTheDocument();
     expect(screen.getByText('Effective Date: July 10, 2025')).toBeInTheDocument();
-    expect(screen.getByText('5. Returns, Claims, and Defective Goods')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Returns, Claims, and Defective Goods' })
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: 'Return & Refund Policy' })
     ).toHaveAttribute('href', '/return-refund-policy');

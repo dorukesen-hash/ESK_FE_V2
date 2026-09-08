@@ -6,6 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Link from 'next/link';
 import { useResetPassword } from '@/hooks/useResetPassword';
+import { AuthShell } from './AuthShell';
 
 const schema = yup.object({
   password: yup
@@ -45,8 +46,15 @@ export function ResetPasswordView({ token }) {
 
   if (isReset) {
     return (
-      <main className="mx-auto max-w-sm px-6 py-16 text-center">
-        <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
+      <AuthShell
+        image="/hero-strapping.jpg"
+        alt="Composite and woven strapping rolls with strapping tensioner tools"
+        kicker="Welcome Back"
+        heading="Pick up right where you left off"
+        subtitle="Track orders, reorder in a click, and manage your saved addresses."
+      >
+        <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Account</p>
+        <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary">
           Password updated
         </h1>
         <p className="mt-2 text-text-muted">You can now log in with your new password.</p>
@@ -56,13 +64,20 @@ export function ResetPasswordView({ token }) {
         >
           Go to Login
         </Link>
-      </main>
+      </AuthShell>
     );
   }
 
   return (
-    <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
+    <AuthShell
+      image="/hero-strapping.jpg"
+      alt="Composite and woven strapping rolls with strapping tensioner tools"
+      kicker="Welcome Back"
+      heading="Pick up right where you left off"
+      subtitle="Track orders, reorder in a click, and manage your saved addresses."
+    >
+      <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Account</p>
+      <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary">
         Reset your password
       </h1>
 
@@ -107,6 +122,6 @@ export function ResetPasswordView({ token }) {
           {resetPasswordMutation.isPending ? 'Updating…' : 'Update Password'}
         </button>
       </form>
-    </main>
+    </AuthShell>
   );
 }

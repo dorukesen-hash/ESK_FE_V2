@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { ArrowLeft, Download, MapPin } from 'lucide-react';
 import { useAccountOrders } from '@/hooks/useAccountOrders';
+import { StatusPill } from './StatusPill';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -47,8 +49,9 @@ export function OrderDetailView({ orderNumber }) {
         </p>
         <Link
           href="/account/orders"
-          className="mt-4 inline-block text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
+          className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
         >
+          <ArrowLeft aria-hidden="true" className="h-3.5 w-3.5" />
           Back to order history
         </Link>
       </div>
@@ -65,36 +68,39 @@ export function OrderDetailView({ orderNumber }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <Link
+        href="/account/orders"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
+      >
+        <ArrowLeft aria-hidden="true" className="h-3.5 w-3.5" />
+        Back to order history
+      </Link>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
           Order {order.orderNumber ?? order.uniqueId}
         </h1>
-        <Link
-          href="/account/orders"
-          className="text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
-        >
-          Back to order history
-        </Link>
+        <StatusPill status={order.orderstatus?.name} />
       </div>
 
-      <dl className="mt-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+      <dl className="mt-6 grid grid-cols-2 gap-6 border-y border-border py-6 text-sm sm:grid-cols-4">
         <div>
           <dt className="text-text-muted">Placed</dt>
-          <dd className="font-medium text-text-primary">{formatDate(order.createdAt)}</dd>
-        </div>
-        <div>
-          <dt className="text-text-muted">Status</dt>
-          <dd className="font-medium text-text-primary">{order.orderstatus?.name ?? '—'}</dd>
+          <dd className="mt-1 font-medium text-text-primary">{formatDate(order.createdAt)}</dd>
         </div>
         <div>
           <dt className="text-text-muted">Tracking</dt>
-          <dd className="font-medium text-text-primary">
+          <dd className="mt-1 font-medium text-text-primary">
             {shipment?.tracking ?? order.trackingNumber ?? '—'}
           </dd>
         </div>
         <div>
+          <dt className="text-text-muted">Items</dt>
+          <dd className="mt-1 font-medium text-text-primary">{items.length || '—'}</dd>
+        </div>
+        <div>
           <dt className="text-text-muted">Total</dt>
-          <dd className="font-medium text-text-primary">
+          <dd className="mt-1 font-medium text-text-primary">
             {order.price != null ? `$${Number(order.price).toFixed(2)}` : '—'}
           </dd>
         </div>
@@ -139,7 +145,8 @@ export function OrderDetailView({ orderNumber }) {
       <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2">
         {shipment && (
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-text-muted">
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-text-muted">
+              <MapPin aria-hidden="true" className="h-4 w-4 text-accent" />
               Shipping address
             </h2>
             <address className="mt-2 not-italic text-sm text-text-primary">
@@ -155,7 +162,8 @@ export function OrderDetailView({ orderNumber }) {
 
         {billing && (
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-text-muted">
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-text-muted">
+              <MapPin aria-hidden="true" className="h-4 w-4 text-accent" />
               Billing address
             </h2>
             <address className="mt-2 not-italic text-sm text-text-primary">
@@ -171,21 +179,23 @@ export function OrderDetailView({ orderNumber }) {
       </div>
 
       {API_URL && (
-        <div className="mt-8 flex gap-4">
+        <div className="mt-8 flex flex-wrap gap-4">
           <a
             href={`${API_URL}/invoices/pdf/${order.id}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-10 items-center rounded-full border border-border px-4 text-sm font-semibold text-text-primary transition-colors hover:border-primary"
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold text-text-primary transition-colors hover:border-primary"
           >
+            <Download aria-hidden="true" className="h-4 w-4" />
             Download invoice
           </a>
           <a
             href={`${API_URL}/invoices/packing-slip/${order.id}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-10 items-center rounded-full border border-border px-4 text-sm font-semibold text-text-primary transition-colors hover:border-primary"
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold text-text-primary transition-colors hover:border-primary"
           >
+            <Download aria-hidden="true" className="h-4 w-4" />
             Download packing slip
           </a>
         </div>

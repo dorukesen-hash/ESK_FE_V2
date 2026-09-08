@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLogin } from '@/hooks/useLogin';
 import { useAuthStore } from '@/stores/authStore';
+import { AuthShell } from './AuthShell';
 
 const schema = yup.object({
   email: yup.string().email('Enter a valid email').required('Email is required'),
@@ -42,8 +43,15 @@ export function LoginView() {
   }
 
   return (
-    <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
+    <AuthShell
+      image="/hero-strapping.jpg"
+      alt="Composite and woven strapping rolls with strapping tensioner tools"
+      kicker="Welcome Back"
+      heading="Pick up right where you left off"
+      subtitle="Track orders, reorder in a click, and manage your saved addresses."
+    >
+      <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Account</p>
+      <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary">
         Log in
       </h1>
 
@@ -95,6 +103,6 @@ export function LoginView() {
           Register
         </Link>
       </p>
-    </main>
+    </AuthShell>
   );
 }

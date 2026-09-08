@@ -28,8 +28,8 @@ describe('AccountNav', () => {
   it('highlights the active section', () => {
     pathname = '/account/orders';
     render(<AccountNav />);
-    expect(screen.getByRole('link', { name: 'Orders' })).toHaveClass('text-primary');
-    expect(screen.getByRole('link', { name: 'Overview' })).not.toHaveClass('text-primary');
+    expect(screen.getByRole('link', { name: 'Orders' })).toHaveClass('bg-ink');
+    expect(screen.getByRole('link', { name: 'Overview' })).not.toHaveClass('bg-ink');
   });
 
   // AccountNav itself does not navigate on logout - every /account route is

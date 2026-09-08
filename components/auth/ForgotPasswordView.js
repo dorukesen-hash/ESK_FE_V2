@@ -5,6 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Link from 'next/link';
 import { useForgotPassword } from '@/hooks/useForgotPassword';
+import { AuthShell } from './AuthShell';
 
 const schema = yup.object({
   email: yup.string().email('Enter a valid email').required('Email is required'),
@@ -27,21 +28,35 @@ export function ForgotPasswordView() {
   // around) - show whatever it sends back rather than a hardcoded string.
   if (forgotPasswordMutation.isSuccess) {
     return (
-      <main className="mx-auto max-w-sm px-6 py-16 text-center">
-        <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
+      <AuthShell
+        image="/hero-industrial.webp"
+        alt="Industrial machinery secured to a wooden pallet with cord strapping"
+        kicker="Built For Industry"
+        heading="Packaging solutions for demanding industrial loads"
+        subtitle="From machinery to lumber, we help you secure what matters."
+      >
+        <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Account</p>
+        <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary">
           Check your email
         </h1>
         <p className="mt-2 text-text-muted">{forgotPasswordMutation.data.message}</p>
         <Link href="/login" className="mt-6 inline-block text-primary hover:text-primary-hover">
           Back to login
         </Link>
-      </main>
+      </AuthShell>
     );
   }
 
   return (
-    <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
+    <AuthShell
+      image="/hero-industrial.webp"
+      alt="Industrial machinery secured to a wooden pallet with cord strapping"
+      kicker="Built For Industry"
+      heading="Packaging solutions for demanding industrial loads"
+      subtitle="From machinery to lumber, we help you secure what matters."
+    >
+      <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Account</p>
+      <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary">
         Forgot your password?
       </h1>
       <p className="mt-2 text-text-muted">
@@ -78,6 +93,6 @@ export function ForgotPasswordView() {
           Back to login
         </Link>
       </p>
-    </main>
+    </AuthShell>
   );
 }

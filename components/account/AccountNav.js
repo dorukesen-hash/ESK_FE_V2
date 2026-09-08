@@ -1,15 +1,17 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { LayoutDashboard, Package, MapPin, FileText, LogOut } from 'lucide-react';
 import { useLogout } from '@/hooks/useLogout';
 import { useAuthStore } from '@/stores/authStore';
 
 const links = [
-  { href: '/account', label: 'Overview' },
-  { href: '/account/orders', label: 'Orders' },
-  { href: '/account/addresses', label: 'Addresses' },
-  { href: '/account/invoices', label: 'Invoices' },
+  { href: '/account', label: 'Overview', icon: LayoutDashboard },
+  { href: '/account/orders', label: 'Orders', icon: Package },
+  { href: '/account/addresses', label: 'Addresses', icon: MapPin },
+  { href: '/account/invoices', label: 'Invoices', icon: FileText },
 ];
 
 export function AccountNav() {
@@ -33,41 +35,55 @@ export function AccountNav() {
   }
 
   return (
-    <nav className="flex items-center justify-between border-b border-border px-6 py-4">
-      <div className="flex items-center gap-6">
-        <span className="font-semibold text-text-primary">My Account</span>
-        <ul className="flex items-center gap-4">
-          {links.map((link) => {
-            const isActive =
-              link.href === '/account'
-                ? pathname === '/account'
-                : pathname.startsWith(link.href);
-            return (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className={`text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'text-primary'
-                      : 'text-text-muted hover:text-text-primary'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+    <nav className="border-b border-border bg-surface">
+      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+        <div className="flex flex-wrap items-center gap-6">
+          <Link href="/" className="shrink-0">
+            <Image
+              src="/esk-icon.png"
+              alt="ESK Packaging"
+              width={140}
+              height={20}
+              className="h-5 w-auto"
+            />
+          </Link>
 
-      <button
-        type="button"
-        onClick={handleLogout}
-        disabled={logoutMutation.isPending}
-        className="text-sm font-medium text-text-muted transition-colors hover:text-text-primary disabled:opacity-50"
-      >
-        {logoutMutation.isPending ? 'Logging out…' : 'Log out'}
-      </button>
+          <ul className="scrollbar-hide flex items-center gap-1 overflow-x-auto">
+            {links.map((link) => {
+              const isActive =
+                link.href === '/account'
+                  ? pathname === '/account'
+                  : pathname.startsWith(link.href);
+              const Icon = link.icon;
+              return (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className={`flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-ink text-white'
+                        : 'text-text-muted hover:bg-button-secondary-bg hover:text-text-primary'
+                    }`}
+                  >
+                    <Icon aria-hidden="true" className="h-4 w-4" />
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          disabled={logoutMutation.isPending}
+          className="flex items-center gap-2 text-sm font-medium text-text-muted transition-colors hover:text-text-primary disabled:opacity-50"
+        >
+          <LogOut aria-hidden="true" className="h-4 w-4" />
+          {logoutMutation.isPending ? 'Logging out…' : 'Log out'}
+        </button>
+      </div>
     </nav>
   );
 }

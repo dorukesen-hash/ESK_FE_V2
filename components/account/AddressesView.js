@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { MapPin, Phone, Plus } from 'lucide-react';
 import { useAddresses } from '@/hooks/useAddresses';
 import { useCreateAddress } from '@/hooks/useCreateAddress';
 import { useUpdateAddress } from '@/hooks/useUpdateAddress';
@@ -44,11 +45,19 @@ export function AddressesView() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
-          Address book
-        </h1>
-        <Button onClick={openAddModal}>Add address</Button>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
+            My Account
+          </p>
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary sm:text-3xl">
+            Address book
+          </h1>
+        </div>
+        <Button onClick={openAddModal} className="gap-1.5">
+          <Plus aria-hidden="true" className="h-4 w-4" />
+          Add address
+        </Button>
       </div>
 
       {isLoading && <p className="mt-6 text-sm text-text-muted">Loading addresses…</p>}
@@ -60,24 +69,37 @@ export function AddressesView() {
       )}
 
       {addresses && addresses.length === 0 && (
-        <p className="mt-6 text-sm text-text-muted">
-          You don&apos;t have any saved addresses yet.
-        </p>
+        <div className="mt-10 flex flex-col items-center rounded-lg border border-dashed border-border py-16 text-center">
+          <MapPin aria-hidden="true" className="h-8 w-8 text-accent" />
+          <p className="mt-3 text-sm text-text-muted">
+            You don&apos;t have any saved addresses yet.
+          </p>
+        </div>
       )}
 
       {addresses && addresses.length > 0 && (
         <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {addresses.map((address) => (
             <li key={address.id} className="rounded-lg border border-border p-4">
-              <p className="font-semibold text-text-primary">{address.title}</p>
-              <p className="mt-1 text-sm text-text-muted">{address.firstline}</p>
-              {address.secondline && (
-                <p className="text-sm text-text-muted">{address.secondline}</p>
-              )}
-              <p className="text-sm text-text-muted">
-                {[address.city, address.state, address.zip].filter(Boolean).join(', ')}
-              </p>
-              {address.phone && <p className="text-sm text-text-muted">{address.phone}</p>}
+              <div className="flex items-start gap-3">
+                <MapPin aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                <div>
+                  <p className="font-semibold text-text-primary">{address.title}</p>
+                  <p className="mt-1 text-sm text-text-muted">{address.firstline}</p>
+                  {address.secondline && (
+                    <p className="text-sm text-text-muted">{address.secondline}</p>
+                  )}
+                  <p className="text-sm text-text-muted">
+                    {[address.city, address.state, address.zip].filter(Boolean).join(', ')}
+                  </p>
+                  {address.phone && (
+                    <p className="mt-1 flex items-center gap-1.5 text-sm text-text-muted">
+                      <Phone aria-hidden="true" className="h-3.5 w-3.5" />
+                      {address.phone}
+                    </p>
+                  )}
+                </div>
+              </div>
 
               <div className="mt-3 flex gap-4 text-sm">
                 <button

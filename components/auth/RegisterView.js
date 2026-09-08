@@ -6,6 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Link from 'next/link';
 import { useRegister } from '@/hooks/useRegister';
+import { AuthShell } from './AuthShell';
 
 const schema = yup.object({
   name: yup.string().required('First name is required'),
@@ -44,8 +45,15 @@ export function RegisterView() {
 
   if (isRegistered) {
     return (
-      <main className="mx-auto max-w-sm px-6 py-16 text-center">
-        <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
+      <AuthShell
+        image="/hero-product-range.webp"
+        alt="ESK Packaging product range: branded tape, corrugated boxes, strapping coils, stretch film and dispenser carts"
+        kicker="Full Product Range"
+        heading="Everything your warehouse needs, in one order"
+        subtitle="Boxes, tape, film and equipment, stocked and ready to ship."
+      >
+        <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Account</p>
+        <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary">
           Account created
         </h1>
         <p className="mt-2 text-text-muted">
@@ -57,13 +65,20 @@ export function RegisterView() {
         >
           Go to Login
         </Link>
-      </main>
+      </AuthShell>
     );
   }
 
   return (
-    <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
+    <AuthShell
+      image="/hero-product-range.webp"
+      alt="ESK Packaging product range: branded tape, corrugated boxes, strapping coils, stretch film and dispenser carts"
+      kicker="Full Product Range"
+      heading="Everything your warehouse needs, in one order"
+      subtitle="Boxes, tape, film and equipment, stocked and ready to ship."
+    >
+      <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Account</p>
+      <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary">
         Create an account
       </h1>
 
@@ -130,6 +145,6 @@ export function RegisterView() {
           Log in
         </Link>
       </p>
-    </main>
+    </AuthShell>
   );
 }
