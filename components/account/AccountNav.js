@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Package, MapPin, FileText, LogOut } from 'lucide-react';
@@ -36,17 +35,11 @@ export function AccountNav() {
 
   return (
     <nav className="border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-3">
         <div className="flex flex-wrap items-center gap-6">
-          <Link href="/" className="shrink-0">
-            <Image
-              src="/esk-icon.png"
-              alt="ESK Packaging"
-              width={140}
-              height={20}
-              className="h-5 w-auto"
-            />
-          </Link>
+          <span className="hidden shrink-0 text-xs font-bold uppercase tracking-[0.3em] text-accent sm:inline">
+            My Account
+          </span>
 
           <ul className="scrollbar-hide flex items-center gap-1 overflow-x-auto">
             {links.map((link) => {

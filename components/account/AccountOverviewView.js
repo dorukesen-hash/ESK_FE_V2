@@ -32,8 +32,7 @@ export function AccountOverviewView() {
 
   return (
     <div>
-      <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">My Account</p>
-      <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary sm:text-3xl">
+      <h1 className="text-2xl font-extrabold tracking-tight text-text-primary sm:text-3xl">
         Welcome back{user?.name ? `, ${user.name}` : ''}
       </h1>
       <p className="mt-1 text-text-muted">{user?.email}</p>
