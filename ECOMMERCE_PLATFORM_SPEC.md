@@ -74,11 +74,12 @@ Tüm tablo/kolon adları `underscored: true` ile snake_case'e çevriliyor. Öne 
 | **Customer** | Fatura/adres bilgisi taşıyan, User'a bağlı ayrı bir kayıt |
 | **Cart** | Tek alan: `productArray` (JSONB: `{id, quantity, isPallet}[]`) |
 | **Category → Subcategory → Product → Variant** | 4 seviyeli ürün hiyerarşisi |
-| **Variant** | ~90 kolonlu dev tablo: fiyat kademeleri (`one_four_units`, `five_nine_units`, `ten_plus_units`, `pallet_pricing`), gerçek kargo ölçüleri (`pack_weight/width/length/height` — DECIMAL), referans palet ölçüleri (`units_per_pallet`, `pallet_*`), onlarca teknik spesifikasyon alanı (footage, break_strength, core_diameter, vb. + birim kolonları), `featured`/`featured_position` (anasayfa curation) |
-| **Order** (soft-delete) | `orderNumber` (sıralı "100001"'den başlar), `isPaid`, `stripePaymentIntentId`, `closure`, FK: userId/billingId/shipmentId/invoiceId/orderstatusId/customerId/discountCodeId. **`id` kolonunda DB seviyesinde PK/unique constraint yok** (canlıda önceden var olan bir durum — bazı ilişkiler `constraints:false` ile tanımlı) |
-| **OrderItem** (soft-delete) | Satır bazlı fiyat/miktar, `variant_id` FK ile Variant'a bağlı |
+| **Variant** | ~90 kolonlu dev tablo: fiyat kademeleri (`one_four_units`, `five_nine_units`, `ten_plus_units`, `pallet_pricing`), gerçek kargo ölçüleri (`pack_weight/width/length/height` — DECIMAL), referans palet ölçüleri (`units_per_pallet`, `pallet_*`), onlarca teknik spesifikasyon alanı (footage, break_strength, core_diameter, vb. + birim kolonları), `featured`/`featured_position` (anasayfa curation). **`sku`** (STRING, ürün SKU kodu — örn. `"EB20020010006W"`) — bu alan yakın zamana kadar yanıltıcı biçimde `stock` adını taşıyordu (gerçekte hiç envanter/stok adedi tutmadı, her zaman SKU'ydu); model, DB kolonu ve tüm API/admin/storefront referansları `sku` olarak yeniden adlandırıldı. **Yeni storefront kodunda/AI destekli kod üretiminde `variant.stock` değil `variant.sku` kullanılmalı** — eski isim artık DB'de bile mevcut değil. (Ayrı, karıştırılmaması gereken bir alan: `stockLevel` — bu tamamen farklı bir kavram, stokta var/yok göstergesi, bu rename'den etkilenmedi ve şu an gerçek bir envanter takip özelliği yok.) |
+| **Order** (soft-delete) | `orderNumber` (sıralı "100001"'den başlar), `isPaid`, `stripePaymentIntentId`, `closure`, FK: userId/billingId/shipmentId/invoiceId/orderstatusId/customerId/discountCodeId. **`id` kolonunda DB seviyesinde PK/unique constraint yok** (canlıda önceden var olan bir durum — bazı ilişkiler `constraints:false` ile tanımlı; bkz. §2.9 — bu durum aynı zamanda `shipment`/`carrier`/`orderitem` tablolarında da vardı ve düzeltildi, ama `order` tablosunda bilinçli olarak henüz düzeltilmedi). Admin tarafında (`getSingleOrder`) artık `DiscountCode` (`code`/`type`/`value`), `Invoice` ve `Transaction` (ödeme yöntemi/ödeme id'si) de include ediliyor — bu alanlar şu an sadece admin panel yanıtında var, customer-facing `GET /api/account/orders` bunları içermiyor (bkz. §2.4/§4.1). |
+| **OrderItem** (soft-delete) | Satır bazlı fiyat/miktar, `variant_id` FK ile Variant'a bağlı. Admin `getSingleOrder` yanıtında artık her `OrderItem` için nested `OrderItemRefund[]` listesi de geliyor (kalem bazlı iade geçmişi). |
+| **OrderItemRefund** *(yeni model)* | Kalem (satır) bazlı kısmi/tam iade kaydı — **immutable log tablosu**, `OrderItem.quantity`/`price` asla mutate edilmez; "kalan miktar" her zaman `quantity - sum(bu kaleme ait refund satırları)` olarak hesaplanır. Alanlar: `quantity`, `amount` (DECIMAL), `stripeRefundId` (nullable — manuel/Stripe-dışı siparişlerde null), `note` (nullable), `actorUserId` (kimin iade ettiği). `OrderItem.hasMany`, `User.hasMany(..., {as:'itemRefundActions'})`. Şu an sadece admin panelden (`POST /admin/orders/:id/items/:itemId/refund`) yazılıyor; storefront tarafında henüz gösterilmiyor ama API altyapısı hazır — müşteri sipariş geçmişinde "bu kalemden X adet iade edildi" göstermek istenirse veri zaten mevcut. |
 | **OrderStatus** | Sabit ID'ler (hardcoded): 1 Pending, 2 In Progress, 3 Completed, 4 On Hold, 5 Cancelled, 6 Refunded |
-| **OrderAuditLog** | Durum değişikliği/refund/kalem düzenleme/manuel oluşturma logu |
+| **OrderAuditLog** | Durum değişikliği/refund/kalem düzenleme/manuel oluşturma logu. Kapsamı yakın zamanda genişledi — artık otomatik sipariş-onay e-postası gönderimi (`email_sent`/`email_failed`), sunucu/istemci fiyat uyuşmazlığı (`price_mismatch`) ve kalem bazlı iade (`item_refund`) de bu tabloya otomatik yazılıyor (bkz. §2.5). Genel şema hâlâ aynı: `{orderId, actorUserId, action, field, oldValue, newValue}` — yeni bir `action` türü eklemek şema değişikliği gerektirmiyor. |
 | **Invoice** | Türkiye e-fatura tarzı geniş alan seti var ama pratikte sadece küçük bir alt küme (documentNumber, issueDate, grandTotal, paymentType/Platform) dolduruluyor |
 | **Shipment / ShipmentStatus / Carrier / CarrierPrice / Deci** | Kargo/taşıyıcı/tracking modeli |
 | **Billing / ShippingProfiles** | Kullanıcının kayıtlı fatura ve adres defteri (checkout'ta seçilebilir) |
@@ -106,7 +107,7 @@ Tüm endpoint'ler `/api` altında (istisna: `POST /api/stripe/webhook` — raw b
 | `POST /forgot-password` | Her zaman generic 200 döner (email enumeration önleme) |
 | `POST /reset-password/:token` | SHA-256 token + 15dk expiry ile şifre günceller |
 
-**Hesap** (`/api/account`, `requireAuth`): `GET /orders`, `GET /shipments`, `GET /invoices` — kullanıcının kendi geçmişi.
+**Hesap** (`/api/account`, `requireAuth`): `GET /orders`, `GET /shipments`, `GET /invoices` — kullanıcının kendi geçmişi. `GET /orders` her sipariş için (Stripe ile ödenmiş olanlarda) canlı Stripe sorgusuyla hesaplanan `amountRefunded`/`amountRemaining` alanlarını da ekliyor (`attachRefundTotals` — hiçbir yerde DB'de saklanmıyor, her istekte Stripe'tan taze çekiliyor; `stripePaymentIntentId` olmayan siparişlerde bu alanlar eklenmez). Şu an dönen `OrderItem` alt kümesi (`id,title,code,variant,variant_id,category,price,quantity,note,imgurl`) kalem bazlı `OrderItemRefund` detayını **içermiyor** — sadece sipariş toplamı seviyesinde iade bilgisi var; kalem bazında "hangi üründen ne kadar iade edildi" göstermek istenen bir müşteri sipariş geçmişi ekranı için backend'de bu endpoint'e `OrderItemRefund` include'u eklenmesi gerekecek (model zaten mevcut, bkz. §2.3).
 
 **Kullanıcı**: `GET /api/user/user-details` (soft auth) — `firstOrder` bayrağı dahil tam kullanıcı verisi.
 
@@ -149,7 +150,9 @@ Tüm endpoint'ler `/api` altında (istisna: `POST /api/stripe/webhook` — raw b
 - **İndirim kodu doğrulama**: `isActive`, `validFrom/Until`, `minOrderAmount`, `maxUses` (global), `maxUsesPerCustomer`, `firstOrderOnly` (kullanıcının önceki siparişi yoksa). Giriş yapmış kullanıcı için aktif bir `firstOrderOnly` kodu, kod girilmese bile otomatik denenir.
 - **Sepet birleştirme (guest→user merge)**: Misafir sepeti 1 yıllık `userCart` cookie'sinde (`httpOnly:false`) tutulur. Giriş yapıldıktan sonraki ilk `GET /cart`'ta cookie sepeti DB sepetiyle merge edilir (aynı satırlar cookie miktarıyla ezilir — "last write wins", yeni satırlar eklenir).
 - **Sipariş durum akışı**: Ödenmiş ve henüz iade edilmemiş bir sipariş **doğrudan Cancelled'a çekilemez** — önce refund gerekir. Her durum değişikliği/refund/kalem düzenleme `OrderAuditLog`'a yazılır.
-- **Fatura oluşturma**: Sadece iki noktada tetiklenir — Stripe webhook (`confirmOrderPayment`) ve admin manuel sipariş oluşturma (`isPaid=true` ise).
+- **Kalem bazlı (satır) iade** (`refundOrderItem`, admin-only şu an): Tam sipariş iadesinin (`refundOrder`) yanında, artık tek bir `OrderItem`'dan kısmi miktar iade edilebiliyor. `OrderItem.quantity`/`price` hiç mutate edilmiyor — her iade `OrderItemRefund` tablosuna ayrı bir satır olarak ekleniyor, "kalan miktar" isteğe bağlı olarak `quantity - sum(refund satırları)` ile hesaplanıyor. Stripe ile ödenmiş siparişlerde gerçek Stripe refund çağrısı yapılıyor (`stripeRefundId` kaydediliyor); manuel/Stripe-dışı siparişlerde sadece dahili kayıt oluşuyor. Bir siparişin "tamamen iade edilmiş" sayılması, Stripe'lı siparişlerde canlı Stripe toplamlarıyla, manuel siparişlerde ise kalemlerin **indirim/kargo öncesi ham toplamıyla** karşılaştırılarak belirleniyor (sipariş-seviyesi indirim/kargo mutabakatı kasıtlı olarak personel kararına bırakılmış, `updateOrderItems`'daki mevcut yaklaşımla tutarlı).
+- **Otomatik işlemlerin denetim izi**: Checkout tamamlandığında (`createOrder`) ve admin manuel sipariş oluştururken (`createManualOrder`, `isPaid=true` ise) gönderilen otomatik sipariş-onay e-postasının başarı/başarısızlığı artık `OrderAuditLog`'a yazılıyor (`email_sent`/`email_failed`) — önceden sadece sunucu logunda kalıyordu, sessizce kayboluyordu. Sunucu/istemci fiyat uyuşmazlığı tespiti de (bkz. §2.9) artık aynı şekilde `price_mismatch` action'ıyla denetim izine giriyor, sadece `console.warn` değil. Bu, yeni storefront'un "siparişimde ne oldu" tarzı bir müşteri geçmişi ekranı kurması için ek backend işi gerektirmeden kullanılabilecek bir veri kaynağı.
+- **Fatura oluşturma**: Sadece iki noktada tetiklenir — Stripe webhook (`confirmOrderPayment`) ve admin manuel sipariş oluşturma (`isPaid=true` ise). Manuel sipariş oluşturma artık kayıtlı indirim kodlarını da destekliyor (`validateDiscountCode`/`computeDiscountAmount` — checkout'takiyle aynı, paylaşılan mantık).
 
 ### 2.6 Auth Modeli
 
@@ -164,9 +167,9 @@ Tüm endpoint'ler `/api` altında (istisna: `POST /api/stripe/webhook` — raw b
 
 | Servis | Kullanım amacı |
 |---|---|
-| **Stripe** | PaymentIntent, refund (tam/kısmi), tax calculation (yarım kalmış), webhook |
-| **UPS** | OAuth2 client-credentials, gerçek zamanlı kargo teklifi (sadece fiyat, etiket üretimi yok) |
-| **Taibeta** | Asıl LTL/freight taşıyıcı fiyat teklifi kaynağı |
+| **Stripe** | PaymentIntent, refund (tam/kısmi), tax calculation (yarım kalmış), webhook. **⚠️ Canlı ortam `sk_live_...` anahtarıyla LIVE mode'da çalışıyor** — gerçek kartlardan gerçek tahsilat yapılıyor. Yeni storefront'un dev/staging ortamında test kartlarıyla (`pm_card_visa` vb.) çalışmak için ayrı bir `sk_test_...` anahtarı/publishable key kullanılmalı; live anahtar test kartlarını reddediyor. |
+| **UPS** | OAuth2 client-credentials, gerçek zamanlı kargo teklifi (sadece fiyat, etiket üretimi yok). **Bilinçli iş kararı: UPS kalıcı olarak sandbox modunda kalacak** — sadece karşılaştırma/fiyat teklifi amaçlı kullanılıyor, gerçek kargo etiketi/gönderi için hiç kullanılmıyor. |
+| **Taibeta** | **Asıl, birincil kargo/gönderi sağlayıcısı** — UPS'ten daha öncelikli, gerçek gönderiler bu servisle yapılıyor. |
 | **Cloudflare R2** | Tüm ürün/varyant/subcategory görselleri (S3-uyumlu API) |
 | **zippopotam.us** | ZIP kodundan eyalet (state) çözümleme |
 | **Google OAuth 2.0** | Sosyal giriş/kayıt |
@@ -181,10 +184,11 @@ Tüm endpoint'ler `/api` altında (istisna: `POST /api/stripe/webhook` — raw b
 - **`GET /api/product/`** — handler'da tanımsız `query` değişkeni kullanılıyor → çalışma zamanında `ReferenceError` riski.
 - **`GET /api/images/subcategory/:name`** — `Image` modeli import edilmeden kullanılıyor → muhtemelen kırık.
 - `/api/images/*` ve `/api/r2/*` aynı controller'ı sarıyor, örtüşen ama birebir aynı olmayan endpoint'ler — yeni frontend hangisini kullanacağına netlik getirmeli (öneri: `/api/images` kullanılsın, `/api/r2` legacy sayılsın).
-- **`Order.id`** canlı DB'de PK/unique constraint'e sahip değil — bazı ilişkiler `constraints:false` ile workaround'lanmış.
+- **`Order.id`** canlı DB'de hâlâ PK/unique constraint'e sahip değil — bazı ilişkiler `constraints:false` ile workaround'lanmış, bilinçli olarak henüz düzeltilmedi. (Aynı kategori sorun `shipment`, `carrier` ve `orderitem` tablolarında da vardı — bu üçü artık düzeltildi, `order` düzeltilen son tablo değil.)
 - **`Stripe calculate-tax`** hardcoded zip/amount ile çalışıyor — gerçek bir vergi hesaplayıcı değil, yeni frontend'de bu endpoint'e güvenmeden önce backend'de düzeltilmesi gerekir.
-- Sipariş oluştururken sunucu fiyatı client'ın gönderdiğiyle uyuşmazsa sadece `console.warn` yapılıyor, Stripe tahsilatı o noktada zaten client'ın tutarıyla yapılmış oluyor — teorik bir güven açığı.
+- Sipariş oluştururken sunucu fiyatı client'ın gönderdiğiyle uyuşmazsa artık `OrderAuditLog`'a da yazılıyor (bkz. §2.5) ama Stripe tahsilatı o noktada zaten client'ın tutarıyla yapılmış oluyor — audit izi eklendi, altta yatan teorik güven açığı hâlâ duruyor.
 - Doğrulama kütüphanesi yok, test yok, migration dosyası yok — şema tamamen `db/models/*.js` + `sync()`'e bağlı.
+- Müşteri yüzü tarafında "satıcının siparişte yaptığı değişiklikleri müşteriye gösterme" (kalem çıkarma/miktar güncelleme/kısmi iade geçmişi) henüz **hiç UI'a bağlanmamış** — gerekli tüm backend verisi mevcut (`OrderItemRefund`, genişletilmiş `OrderAuditLog`), ama customer-facing `GET /api/account/orders` bunları henüz include etmiyor (bkz. §2.4). Yeni storefront'un sipariş geçmişi ekranı bunu tasarlarken bu endpoint'e ek include eklenmesi gerekecek.
 
 ### 2.10 Deployment
 
@@ -261,7 +265,7 @@ lib/                      → api.js (axios+refresh interceptor), cdn.js, toast.
 - **Katalog:** Tek bir hiyerarşi-bilinçli browser (flat liste yerine breadcrumb drill-down). Varyant oluşturmanın **tek yolu Excel upload** — tekil varyant create endpoint'i yok. "Mass Edit" akışı: tüm katalogu Excel olarak indir → offline düzenle → tekrar yükle (ID'li satırlar update, ID'siz satırlar Category/Subcategory/Product adından çözümlenerek create edilir).
 - **Fiyatlandırma alanları grid'de `decimal:true` işaretli** çünkü Sequelize modeli bazı kolonları INTEGER gösterse de canlı DB'de NUMERIC(10,2) — **yeni frontend de bu alanları ondalıklı olarak ele almalı**.
 - **Featured vs Frequently Bought Together**: ikisi farklı mekanizma — Featured `Variant.featured`/`featured_position` alanlarını kullanır (anasayfa sıralaması), FBT ayrı bir `Featured` tablosu üzerinden source/target ilişkisi kurar (isim çakışması kafa karıştırıcı, dikkat).
-- **Sipariş yönetimi**: durum değişikliği, kısmi/tam Stripe refund, kalem düzenleme (Stripe'ı otomatik güncellemez — admin manuel telafi etmeli), kargo tamamlama, e-posta yeniden gönderme, PDF fatura/packing-slip linkleri.
+- **Sipariş yönetimi**: durum değişikliği, kısmi/tam Stripe refund, **artık kalem (satır) bazında kısmi iade de var** (`OrderItemRefund` — orijinal kalem kaydı hiç mutate edilmez, bkz. §2.3/§2.5), kalem düzenleme (Stripe'ı otomatik güncellemez — admin manuel telafi etmeli), kargo tamamlama, e-posta yeniden gönderme (artık başarı/hata `OrderAuditLog`'a yazılıyor), manuel sipariş oluştururken indirim kodu uygulayabilme, PDF fatura/packing-slip linkleri.
 - **Sepetle ilgili hiçbir şey yok** — ESK_ADMIN'de cart merge/batch-fetch kavramı bulunmuyor (bu iş tamamen ESK_API + storefront'un sorumluluğunda).
 
 ### 3.5 API Entegrasyon Katmanı (referans model)
@@ -328,7 +332,7 @@ Bu bölüm, yukarıdaki bulgulardan yeni bir müşteri-yüzü frontend inşa ede
 | Canlı kargo teklifi | `POST /api/services/combined-shipping-options` |
 | Ödeme | `POST /api/stripe/create-payment-intent`, Stripe Elements (client-side) |
 | Sipariş oluşturma | `POST /api/orders` |
-| Hesap / sipariş geçmişi / takip | `GET /api/account/orders`, `/shipments`, `/invoices`, `GET /api/user/user-details` |
+| Hesap / sipariş geçmişi / takip | `GET /api/account/orders` (Stripe'lı siparişlerde `amountRefunded`/`amountRemaining` dahil, canlı hesaplanır — bkz. §2.4), `/shipments`, `/invoices`, `GET /api/user/user-details` |
 | Auth | `/api/auth/register|login|logout|refresh-token|forgot-password|reset-password|google*` |
 | Müşteri destek talebi | `POST /api/claims` |
 | Fatura/packing-slip PDF | Direkt link: `GET /api/invoices/pdf/:orderId`, `/packing-slip/:orderId` |
@@ -343,6 +347,9 @@ Bu bölüm, yukarıdaki bulgulardan yeni bir müşteri-yüzü frontend inşa ede
 6. **Görsel yükleme/URL**: `/api/images` ve `/api/r2` arasında hangisinin kanonik olduğuna backend ile netlik kazandırılmalı; CDN URL'i çift-slash sorununa karşı normalize et (ESK_ADMIN'in `lib/cdn.js`'i buna karşı zaten bir çözüm içeriyor, referans alınabilir).
 7. **Bilinen backend bug'larına karşı savunma**: `GET /api/product/` (tanımsız `query` değişkeni) ve `GET /api/images/subcategory/:name` şu an kırık görünüyor — storefront bu endpoint'lere bağımlı tasarlanmadan önce backend'de düzeltilmeli ya da alternatif endpoint kullanılmalı.
 8. **Vergi hesaplama**: `/api/stripe/calculate-tax` şu an placeholder/hardcoded — canlıya çıkmadan önce backend'de gerçek bir implementasyon gerekiyor.
+9. **SKU alan adı**: Varyant SKU'su `variant.sku` alanında tutulur — eski, yanıltıcı `variant.stock` adı artık ne model ne DB'de mevcut değil. Herhangi bir eski kod örneği/AI tamamlaması `stock` öneriyorsa görmezden gel.
+10. **Sipariş geçmişinde satıcı değişikliklerini gösterme (ileri iş)**: Backend altyapısı hazır (`OrderItemRefund` kalem-bazlı iade log tablosu, genişletilmiş `OrderAuditLog`) ama customer-facing `GET /api/account/orders` bunları henüz döndürmüyor — storefront'ta "bu siparişte satıcı ne değiştirdi / hangi kalemden ne kadar iade edildi" ekranı planlanıyorsa, bu iş hem backend'de (endpoint'e include eklemek) hem frontend'de yapılacak, şu an sadece admin panelinde görünür durumda.
+11. **Stripe test/live ayrımı**: Prod ortam `sk_live_...` ile çalışıyor — geliştirme/staging için ayrı test-mode anahtar seti (secret + publishable) kullanılmalı, live anahtarla test kartları (`pm_card_visa` vb.) çalışmıyor.
 
 ### 4.3 Kapsam Dışı Bırakılanlar (hatırlatma)
 

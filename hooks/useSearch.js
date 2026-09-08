@@ -10,7 +10,7 @@ function toSearchResult(row) {
   return {
     id: row.id,
     title: row.title,
-    sku: row.stock ?? null,
+    sku: row.sku ?? null,
     categoryName: row.category.name,
     subcategoryName: row.subcategory.name,
     categoryHref: `/category/${categorySlug}`,

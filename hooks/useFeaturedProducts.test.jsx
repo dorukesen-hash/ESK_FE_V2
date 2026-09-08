@@ -41,8 +41,8 @@ describe('useFeaturedProducts', () => {
               name: 'Composite Strapping',
               subcategory_images: [{ image: { url: 'images/composite.jpg' } }],
               variants: [
-                { id: 329, title: 'B', stock: 'CC60/2', featured: true, featured_position: 1, one_four_units: '60.00', unit: 'Coils' },
-                { id: 327, title: 'A', stock: 'CC40/2', featured: true, featured_position: 0, one_four_units: '68.00', unit: 'Coils' },
+                { id: 329, title: 'B', sku: 'CC60/2', featured: true, featured_position: 1, one_four_units: '60.00', unit: 'Coils' },
+                { id: 327, title: 'A', sku: 'CC40/2', featured: true, featured_position: 0, one_four_units: '68.00', unit: 'Coils' },
                 { id: 999, title: 'Not featured', featured: false },
               ],
               products: [],
@@ -97,7 +97,7 @@ describe('useFeaturedProducts', () => {
                   name: 'RSC Boxes',
                   product_images: [{ image: { url: 'images/product.jpg' } }],
                   variants: [
-                    { id: 642, title: '4x4x4', stock: 'BX-4x4x4', featured: true, one_four_units: '1.20', unit: 'Each' },
+                    { id: 642, title: '4x4x4', sku: 'BX-4x4x4', featured: true, one_four_units: '1.20', unit: 'Each' },
                   ],
                 },
               ],
@@ -147,7 +147,7 @@ describe('useFeaturedProducts', () => {
     const variants = Array.from({ length: 12 }, (_, i) => ({
       id: i + 1,
       title: `Variant ${i + 1}`,
-      stock: `SKU-${i + 1}`,
+      sku: `SKU-${i + 1}`,
       featured: true,
       featured_position: i,
       one_four_units: '10.00',

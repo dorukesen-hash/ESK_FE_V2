@@ -30,7 +30,7 @@ describe('useSearch', () => {
           {
             id: 327,
             title: 'Composite Strapping',
-            stock: 'CC40/2',
+            sku: 'CC40/2',
             category: { id: 9, name: 'CORD STRAPPING' },
             subcategory: { id: 18, name: 'Composite Strapping' },
           },

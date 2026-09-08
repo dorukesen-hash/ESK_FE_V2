@@ -34,7 +34,7 @@ describe('useVariant', () => {
       data: {
         id: 327,
         title: 'Composite Strapping',
-        stock: 'CC40/2',
+        sku: 'CC40/2',
         description: 'A strap.',
         unit: 'Coils',
         one_four_units: '68.00',

@@ -137,4 +137,25 @@ describe('OrderDetailView', () => {
     ]);
     expect(useUIStore.getState().isCartDrawerOpen).toBe(true);
   });
+
+  it('shows a per-item refund note when a line item has one', () => {
+    const orderWithItemRefund = {
+      ...order,
+      orderitems: [
+        {
+          ...order.orderitems[0],
+          order_item_refunds: [{ id: 1, quantity: 1, amount: '25.00' }],
+        },
+        order.orderitems[1],
+      ],
+    };
+    useAccountOrders.mockReturnValue({
+      data: [orderWithItemRefund],
+      isLoading: false,
+      isError: false,
+    });
+    render(<OrderDetailView orderNumber="ESK-1001" />);
+
+    expect(screen.getByText('1 of 2 refunded')).toBeInTheDocument();
+  });
 });

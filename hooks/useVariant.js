@@ -50,7 +50,7 @@ function toVariantDetail(variant) {
   return {
     id: variant.id,
     title: variant.title,
-    sku: variant.stock ?? null,
+    sku: variant.sku ?? null,
     description: variant.description ?? null,
     unit: variant.unit ?? null,
     priceTiers,

@@ -17,3 +17,17 @@ export function formatOrderNumber(order) {
 export function isCancelled(order) {
   return order?.orderstatus?.name === 'Cancelled';
 }
+
+// Item-level refunds are an immutable log (ESK_API's OrderItemRefund) - the
+// OrderItem's own quantity/price never change, so "how much of this line was
+// refunded" is always the sum of its refund rows, computed here rather than
+// stored anywhere.
+export function getItemRefundedQuantity(item) {
+  const refunds = item?.order_item_refunds ?? [];
+  return refunds.reduce((sum, refund) => sum + Number(refund.quantity ?? 0), 0);
+}
+
+export function getItemRefundedAmount(item) {
+  const refunds = item?.order_item_refunds ?? [];
+  return refunds.reduce((sum, refund) => sum + Number(refund.amount ?? 0), 0);
+}

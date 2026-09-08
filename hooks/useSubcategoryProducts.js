@@ -20,7 +20,7 @@ function toListing(variant, { subcategory, product }) {
   return {
     id: variant.id,
     title: variant.title,
-    sku: variant.stock ?? null,
+    sku: variant.sku ?? null,
     price: variant.one_four_units ? Number(variant.one_four_units) : null,
     unit: variant.unit,
     image: (product && imageForProduct(product)) || imageForSubcategory(subcategory),

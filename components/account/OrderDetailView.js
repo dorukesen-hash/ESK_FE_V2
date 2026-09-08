@@ -14,7 +14,12 @@ import { useAccountOrders } from '@/hooks/useAccountOrders';
 import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
 import { StatusPill } from './StatusPill';
-import { formatDate, formatOrderNumber, isCancelled } from './orderHelpers';
+import {
+  formatDate,
+  formatOrderNumber,
+  isCancelled,
+  getItemRefundedQuantity,
+} from './orderHelpers';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -168,31 +173,42 @@ export function OrderDetailView({ orderNumber }) {
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => (
-                <tr key={item.id} className="border-b border-border">
-                  <td className="py-3 text-text-primary">{item.title}</td>
-                  <td className="py-3 text-text-muted">{item.quantity}</td>
-                  <td className="py-3 text-text-muted">
-                    {item.price != null ? `$${Number(item.price).toFixed(2)}` : '—'}
-                  </td>
-                  <td className="py-3 text-text-muted">
-                    $
-                    {(Number(item.price ?? 0) * Number(item.quantity ?? 0)).toFixed(2)}
-                  </td>
-                  <td className="py-3 text-right">
-                    {item.variant_id && (
-                      <button
-                        type="button"
-                        onClick={() => addItemToCart(item)}
-                        className="group inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
-                      >
-                        <Plus aria-hidden="true" className="h-3.5 w-3.5" />
-                        Add to cart
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {items.map((item) => {
+                const refundedQuantity = getItemRefundedQuantity(item);
+                return (
+                  <tr key={item.id} className="border-b border-border">
+                    <td className="py-3 text-text-primary">
+                      {item.title}
+                      {refundedQuantity > 0 && (
+                        <span className="mt-0.5 flex items-center gap-1 text-xs font-medium text-purple-700">
+                          <RotateCcw aria-hidden="true" className="h-3 w-3" />
+                          {refundedQuantity} of {item.quantity} refunded
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 text-text-muted">{item.quantity}</td>
+                    <td className="py-3 text-text-muted">
+                      {item.price != null ? `$${Number(item.price).toFixed(2)}` : '—'}
+                    </td>
+                    <td className="py-3 text-text-muted">
+                      $
+                      {(Number(item.price ?? 0) * Number(item.quantity ?? 0)).toFixed(2)}
+                    </td>
+                    <td className="py-3 text-right">
+                      {item.variant_id && (
+                        <button
+                          type="button"
+                          onClick={() => addItemToCart(item)}
+                          className="group inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
+                        >
+                          <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+                          Add to cart
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           <p className="mt-2 text-right text-sm text-text-muted">

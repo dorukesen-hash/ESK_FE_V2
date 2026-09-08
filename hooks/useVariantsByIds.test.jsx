@@ -35,7 +35,7 @@ describe('useVariantsByIds', () => {
         {
           id: 329,
           title: 'B Strap',
-          stock: 'CC60/2',
+          sku: 'CC60/2',
           one_four_units: '60.00',
           pallet_pricing: '46.00',
           unit: 'Coils',

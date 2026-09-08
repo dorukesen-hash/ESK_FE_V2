@@ -41,14 +41,14 @@ describe('useSubcategoryProducts', () => {
               name: 'Composite Strapping',
               subcategory_images: [{ image: { url: 'images/sub.jpg' } }],
               variants: [
-                { id: 327, title: 'A', stock: 'CC40/2', one_four_units: '68.00', unit: 'Coils' },
+                { id: 327, title: 'A', sku: 'CC40/2', one_four_units: '68.00', unit: 'Coils' },
               ],
               products: [
                 {
                   name: 'Wire Buckle',
                   product_images: [{ image: { url: 'images/product.jpg' } }],
                   variants: [
-                    { id: 405, title: 'B', stock: 'WB1', one_four_units: '5.00', unit: 'Each' },
+                    { id: 405, title: 'B', sku: 'WB1', one_four_units: '5.00', unit: 'Each' },
                   ],
                 },
               ],
