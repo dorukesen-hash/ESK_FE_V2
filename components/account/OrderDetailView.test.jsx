@@ -18,8 +18,8 @@ const order = {
   trackingNumber: 'TRACK123',
   orderstatus: { id: 3, name: 'Completed' },
   orderitems: [
-    { id: 1, title: 'Cord Strapping', quantity: 2, price: '50.00', variant_id: 327 },
-    { id: 2, title: 'Corner Board', quantity: 1, price: '50.00', variant_id: 405 },
+    { id: 1, title: 'Cord Strapping', code: 'CC40/2', quantity: 2, price: '50.00', variant_id: 327 },
+    { id: 2, title: 'Corner Board', code: 'CB-4x4', quantity: 1, price: '50.00', variant_id: 405 },
   ],
   shipment: {
     name: 'Jane Doe',
@@ -69,6 +69,8 @@ describe('OrderDetailView', () => {
     expect(screen.getByText('Completed')).toBeInTheDocument();
     expect(screen.getByText('Cord Strapping')).toBeInTheDocument();
     expect(screen.getByText('Corner Board')).toBeInTheDocument();
+    expect(screen.getByText('SKU: CC40/2')).toBeInTheDocument();
+    expect(screen.getByText('SKU: CB-4x4')).toBeInTheDocument();
     expect(screen.getByText('UPS ·')).toBeInTheDocument();
     expect(screen.getAllByText('TRACK123').length).toBeGreaterThan(0);
     expect(screen.getByText('$162.50')).toBeInTheDocument();

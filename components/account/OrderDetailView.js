@@ -179,6 +179,9 @@ export function OrderDetailView({ orderNumber }) {
                   <tr key={item.id} className="border-b border-border">
                     <td className="py-3 text-text-primary">
                       {item.title}
+                      {item.code && (
+                        <span className="block text-xs text-text-muted">SKU: {item.code}</span>
+                      )}
                       {refundedQuantity > 0 && (
                         <span className="mt-0.5 flex items-center gap-1 text-xs font-medium text-purple-700">
                           <RotateCcw aria-hidden="true" className="h-3 w-3" />
