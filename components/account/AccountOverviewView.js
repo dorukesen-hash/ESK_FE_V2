@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Package, MapPin, FileText, ArrowRight, ShoppingBag } from 'lucide-react';
+import { Package, MapPin, FileText, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useAccountOrders } from '@/hooks/useAccountOrders';
 import { StatusPill } from './StatusPill';
@@ -35,7 +35,8 @@ export function AccountOverviewView() {
 
   return (
     <div>
-      <div className="rounded-lg border border-border bg-accent-tint p-6 sm:p-8">
+      <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">My Account</p>
+      <div className="mt-3 rounded-lg border border-border bg-accent-tint p-6 sm:p-8">
         <h1 className="text-2xl font-extrabold tracking-tight text-text-primary sm:text-3xl">
           Welcome back{user?.name ? `, ${user.name}` : ''}
         </h1>
@@ -86,7 +87,7 @@ export function AccountOverviewView() {
 
         {orders && recentOrders.length === 0 && (
           <div className="mt-4 flex flex-col items-center rounded-lg border border-dashed border-border py-14 text-center">
-            <ShoppingBag aria-hidden="true" className="h-7 w-7 text-accent" />
+            <Package aria-hidden="true" className="h-7 w-7 text-accent" />
             <p className="mt-3 text-sm text-text-muted">No orders to show yet.</p>
             <Link
               href="/search"

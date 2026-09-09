@@ -67,7 +67,7 @@ export function AccountSidebar() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className={`flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium transition-colors ${
                     isActive
                       ? 'bg-ink text-white'
                       : 'text-text-muted hover:bg-button-secondary-bg hover:text-text-primary'
@@ -85,7 +85,7 @@ export function AccountSidebar() {
           type="button"
           onClick={handleLogout}
           disabled={logoutMutation.isPending}
-          className="mt-4 flex w-full items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium text-text-muted transition-colors hover:bg-button-secondary-bg hover:text-text-primary disabled:opacity-50"
+          className="mt-4 flex w-full items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-text-muted transition-colors hover:bg-button-secondary-bg hover:text-text-primary disabled:opacity-50"
         >
           <LogOut aria-hidden="true" className="h-4 w-4" />
           {logoutMutation.isPending ? 'Logging out…' : 'Log out'}

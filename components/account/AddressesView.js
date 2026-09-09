@@ -46,9 +46,12 @@ export function AddressesView() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-extrabold tracking-tight text-text-primary sm:text-3xl">
-          Address book
-        </h1>
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">My Account</p>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary sm:text-3xl">
+            Address book
+          </h1>
+        </div>
         <Button onClick={openAddModal} className="gap-1.5">
           <Plus aria-hidden="true" className="h-4 w-4" />
           Add address
