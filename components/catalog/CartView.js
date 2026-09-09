@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { ShoppingBag } from 'lucide-react';
 import { useCartStore } from '@/stores/cartStore';
 import { useVariantsByIds } from '@/hooks/useVariantsByIds';
 import { QuantityInput } from './QuantityInput';
@@ -21,13 +22,14 @@ export function CartView() {
 
   if (items.length === 0) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
+      <main className="mx-auto max-w-3xl px-6 py-24 text-center">
+        <ShoppingBag aria-hidden="true" className="mx-auto h-10 w-10 text-accent" />
+        <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-text-primary">
           Your cart is empty
         </h1>
         <Link
           href="/search"
-          className="mt-4 inline-block text-primary hover:text-primary-hover"
+          className="mt-4 inline-block text-sm font-semibold text-primary hover:text-primary-hover"
         >
           Browse products
         </Link>
@@ -74,7 +76,8 @@ export function CartView() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
+      <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Cart</p>
+      <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
         Your Cart
       </h1>
 

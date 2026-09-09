@@ -57,7 +57,7 @@ describe('SearchView', () => {
       screen.getByRole('heading', { name: 'Search results for "strap"' })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: 'Composite Strapping' })
+      screen.getByRole('link', { name: /Composite Strapping/ })
     ).toHaveAttribute('href', '/product/composite-strapping/327');
     expect(screen.getByText('SKU: CC40/2')).toBeInTheDocument();
     expect(screen.getByText('CORD STRAPPING / Composite Strapping')).toBeInTheDocument();

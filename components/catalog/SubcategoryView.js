@@ -47,7 +47,10 @@ export function SubcategoryView({ categorySlug, subcategorySlug }) {
         ]}
       />
 
-      <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
+      <p className="mt-4 text-xs font-bold uppercase tracking-[0.3em] text-accent">
+        {subcategory.categoryName}
+      </p>
+      <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
         {subcategory.name}
       </h1>
       <p className="mt-2 text-text-muted">

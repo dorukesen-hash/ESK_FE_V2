@@ -8,19 +8,16 @@ import { useSearch } from '@/hooks/useSearch';
 
 function SearchResultRow({ result }) {
   return (
-    <li className="border-b border-border py-4">
-      <Link
-        href={result.href}
-        className="text-sm font-semibold text-text-primary transition-colors hover:text-primary"
-      >
-        {result.title}
+    <li className="transition-colors hover:bg-button-secondary-bg/40">
+      <Link href={result.href} className="block rounded-md px-3 py-4">
+        <p className="text-sm font-semibold text-text-primary">{result.title}</p>
+        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-muted">
+          {result.sku && <span>SKU: {result.sku}</span>}
+          <span>
+            {result.categoryName} / {result.subcategoryName}
+          </span>
+        </div>
       </Link>
-      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-muted">
-        {result.sku && <span>SKU: {result.sku}</span>}
-        <span>
-          {result.categoryName} / {result.subcategoryName}
-        </span>
-      </div>
     </li>
   );
 }
@@ -40,7 +37,8 @@ export function SearchView() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
+      <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Catalog</p>
+      <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
         {initialQuery ? `Search results for "${initialQuery}"` : 'All Products'}
       </h1>
 
@@ -77,7 +75,7 @@ export function SearchView() {
                 No results. Try a different search term.
               </p>
             ) : (
-              <ul className="mt-2">
+              <ul className="mt-2 divide-y divide-border">
                 {data.results.map((result) => (
                   <SearchResultRow key={result.id} result={result} />
                 ))}

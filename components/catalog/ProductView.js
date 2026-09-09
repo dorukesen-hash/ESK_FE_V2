@@ -132,7 +132,10 @@ export function ProductView({ variantId }) {
         </div>
 
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-text-primary md:text-3xl">
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
+            {category?.name ?? 'Product'}
+          </p>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary md:text-3xl">
             {variant.title}
           </h1>
           {variant.sku && (
