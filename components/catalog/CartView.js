@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Trash2 } from 'lucide-react';
 import { useCartStore } from '@/stores/cartStore';
 import { useVariantsByIds } from '@/hooks/useVariantsByIds';
 import { QuantityInput } from './QuantityInput';
@@ -39,14 +39,17 @@ export function CartView() {
 
   if (isLoading) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <div className="space-y-4">
-          {items.map((item) => (
-            <div
-              key={`${item.variantId}-${item.isPallet}`}
-              className="h-24 animate-pulse rounded-lg bg-button-secondary-bg"
-            />
-          ))}
+      <main className="mx-auto max-w-5xl px-6 py-16">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+          <div className="space-y-4">
+            {items.map((item) => (
+              <div
+                key={`${item.variantId}-${item.isPallet}`}
+                className="h-24 animate-pulse rounded-lg bg-button-secondary-bg"
+              />
+            ))}
+          </div>
+          <div className="h-48 animate-pulse rounded-lg bg-button-secondary-bg" />
         </div>
       </main>
     );
@@ -75,74 +78,91 @@ export function CartView() {
   }, 0);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="mx-auto max-w-5xl px-6 py-16">
       <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Cart</p>
       <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
         Your Cart
       </h1>
 
-      <ul className="mt-8 divide-y divide-border">
-        {cartLines.map((line) => {
-          const amount = lineTotal(line, line.quantity, line.isPallet);
-          return (
-            <li key={`${line.id}-${line.isPallet}`} className="flex gap-4 py-6">
-              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-button-secondary-bg">
-                {line.image && (
-                  <Image src={line.image} alt="" fill sizes="80px" className="object-cover" />
-                )}
-              </div>
-              <div className="flex-1">
-                <Link
-                  href={line.href}
-                  className="text-sm font-semibold text-text-primary transition-colors hover:text-primary"
-                >
-                  {line.title}
-                </Link>
-                {line.sku && (
-                  <p className="mt-0.5 text-xs text-text-muted">SKU: {line.sku}</p>
-                )}
-                {line.isPallet && (
-                  <p className="mt-0.5 text-xs text-text-muted">Full pallet</p>
-                )}
-                <label className="mt-2 flex items-center gap-2 text-xs text-text-muted">
-                  Qty
-                  <QuantityInput
-                    value={line.quantity}
-                    onChange={(quantity) => updateQuantity(line.id, quantity, line.isPallet)}
-                    className="w-16 rounded border border-border px-2 py-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </label>
-              </div>
-              <div className="flex flex-col items-end justify-between">
-                {amount != null && (
-                  <p className="text-sm font-semibold text-text-primary">
-                    ${amount.toFixed(2)}
-                  </p>
-                )}
-                <button
-                  type="button"
-                  onClick={() => removeItem(line.id, line.isPallet)}
-                  className="text-xs text-text-muted transition-colors hover:text-primary"
-                >
-                  Remove
-                </button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+        <ul className="divide-y divide-border">
+          {cartLines.map((line) => {
+            const amount = lineTotal(line, line.quantity, line.isPallet);
+            return (
+              <li key={`${line.id}-${line.isPallet}`} className="flex gap-4 py-6 first:pt-0">
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-button-secondary-bg">
+                  {line.image && (
+                    <Image src={line.image} alt="" fill sizes="96px" className="object-cover" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <Link
+                      href={line.href}
+                      className="text-sm font-semibold text-text-primary transition-colors hover:text-primary"
+                    >
+                      {line.title}
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => removeItem(line.id, line.isPallet)}
+                      aria-label={`Remove ${line.title} from cart`}
+                      className="-mr-2.5 -mt-2.5 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center text-text-muted transition-colors hover:text-red-600"
+                    >
+                      <Trash2 aria-hidden="true" className="h-4 w-4" />
+                    </button>
+                  </div>
+                  {line.sku && (
+                    <p className="mt-0.5 text-xs text-text-muted">SKU: {line.sku}</p>
+                  )}
+                  {line.isPallet && (
+                    <p className="mt-0.5 text-xs text-text-muted">Full pallet</p>
+                  )}
+                  <div className="mt-3 flex items-end justify-between gap-3">
+                    <label className="flex items-center gap-2 text-xs text-text-muted">
+                      Qty
+                      <QuantityInput
+                        value={line.quantity}
+                        onChange={(quantity) => updateQuantity(line.id, quantity, line.isPallet)}
+                        className="h-9 w-16 rounded-md border border-border px-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </label>
+                    {amount != null && (
+                      <p className="text-sm font-semibold text-text-primary">
+                        ${amount.toFixed(2)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
 
-      <div className="mt-6 flex items-center justify-between border-t border-border pt-6">
-        <span className="text-sm font-medium text-text-primary">Subtotal</span>
-        <span className="text-lg font-bold text-text-primary">${subtotal.toFixed(2)}</span>
+        <div className="lg:sticky lg:top-32 lg:self-start">
+          <div className="overflow-hidden rounded-lg border border-border">
+            <div aria-hidden="true" className="h-1 bg-accent" />
+            <div className="p-6">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-text-primary">
+                Order Summary
+              </h2>
+              <div className="mt-4 flex justify-between text-sm">
+                <span className="text-text-muted">Subtotal</span>
+                <span className="font-semibold text-text-primary">${subtotal.toFixed(2)}</span>
+              </div>
+              <p className="mt-2 text-xs text-text-muted">
+                Shipping and tax are calculated at checkout.
+              </p>
+              <Link
+                href="/checkout"
+                className="mt-6 flex h-12 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
+              >
+                Proceed to Checkout
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <Link
-        href="/checkout"
-        className="mt-6 flex h-12 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
-      >
-        Proceed to Checkout
-      </Link>
     </main>
   );
 }

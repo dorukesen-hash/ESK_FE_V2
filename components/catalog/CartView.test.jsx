@@ -74,7 +74,7 @@ describe('CartView', () => {
     });
     render(<CartView />);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Remove A from cart' }));
     expect(useCartStore.getState().items).toEqual([]);
   });
 

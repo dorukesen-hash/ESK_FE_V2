@@ -55,7 +55,9 @@ describe('CartDrawer', () => {
     expect(screen.getByText('Composite Strapping')).toBeInTheDocument();
     expect(screen.getByText('SKU: CC40/2')).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Remove Composite Strapping from cart' })
+    );
     expect(useCartStore.getState().items).toEqual([]);
   });
 
