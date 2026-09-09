@@ -23,8 +23,8 @@ describe('OrderConfirmationView', () => {
     useLastOrderStore.getState().setLastOrder({
       orderNumber: '100001',
       lines: [
-        { id: 327, title: 'Composite Strapping', quantity: 2, lineTotal: 136, isPallet: false },
-        { id: 405, title: 'Wire Buckle', quantity: 1, lineTotal: 5, isPallet: false },
+        { id: 327, title: 'Composite Strapping', sku: 'CC40/2', quantity: 2, lineTotal: 136, isPallet: false },
+        { id: 405, title: 'Wire Buckle', sku: 'WB-100', quantity: 1, lineTotal: 5, isPallet: false },
       ],
       shippingOption: { carrierName: 'UPS Ground', priceTotal: 12.5 },
     });
@@ -32,6 +32,8 @@ describe('OrderConfirmationView', () => {
 
     expect(screen.getByText('Order #100001 — a confirmation has been sent to your email.')).toBeInTheDocument();
     expect(screen.getByText('Composite Strapping × 2')).toBeInTheDocument();
+    expect(screen.getByText('SKU: CC40/2')).toBeInTheDocument();
+    expect(screen.getByText('SKU: WB-100')).toBeInTheDocument();
     // Line totals 136 and 5, subtotal 141, total with $12.50 shipping is
     // 153.50 - all distinct values, so each assertion is unambiguous.
     expect(screen.getByText('$136.00')).toBeInTheDocument();

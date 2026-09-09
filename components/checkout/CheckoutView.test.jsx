@@ -57,13 +57,15 @@ describe('CheckoutView', () => {
     useCartStore.getState().addItem(405, 1, false);
     useVariantsByIds.mockReturnValue({
       data: [
-        { id: 327, title: 'Composite Strapping', price: 68, palletPrice: null, unit: 'Coils' },
-        { id: 405, title: 'Wire Buckle', price: 5, palletPrice: null, unit: 'Each' },
+        { id: 327, title: 'Composite Strapping', sku: 'CC40/2', price: 68, palletPrice: null, unit: 'Coils' },
+        { id: 405, title: 'Wire Buckle', sku: 'WB-100', price: 5, palletPrice: null, unit: 'Each' },
       ],
     });
     render(<CheckoutView />);
     expect(screen.getByText('Composite Strapping × 2')).toBeInTheDocument();
     expect(screen.getByText('Wire Buckle × 1')).toBeInTheDocument();
+    expect(screen.getByText('SKU: CC40/2')).toBeInTheDocument();
+    expect(screen.getByText('SKU: WB-100')).toBeInTheDocument();
     expect(screen.getByText('$136.00')).toBeInTheDocument();
     expect(screen.getByText('$5.00')).toBeInTheDocument();
     // Subtotal and Total both show $141.00 here (no shipping selected yet,

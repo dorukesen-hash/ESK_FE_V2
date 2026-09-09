@@ -57,6 +57,9 @@ export function CartDrawer() {
                         <p className="text-sm font-medium text-text-primary">
                           {line?.title ?? `Item ${item.variantId}`}
                         </p>
+                        {line?.sku && (
+                          <p className="text-xs text-text-muted">SKU: {line.sku}</p>
+                        )}
                         {item.isPallet && (
                           <p className="text-xs text-text-muted">Pallet</p>
                         )}

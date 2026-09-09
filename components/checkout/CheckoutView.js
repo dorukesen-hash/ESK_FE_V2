@@ -27,11 +27,17 @@ function OrderSummary({ lines, shippingPrice }) {
       </h2>
       <ul className="mt-4 space-y-2">
         {lines.map((line) => (
-          <li key={`${line.id}-${line.isPallet}`} className="flex justify-between text-sm">
+          <li
+            key={`${line.id}-${line.isPallet}`}
+            className="flex justify-between gap-4 text-sm"
+          >
             <span className="text-text-muted">
               {line.title} × {line.quantity}
+              {line.sku && (
+                <span className="block text-xs text-text-muted/70">SKU: {line.sku}</span>
+              )}
             </span>
-            <span className="text-text-primary">
+            <span className="shrink-0 text-text-primary">
               {line.lineTotal != null ? `$${line.lineTotal.toFixed(2)}` : '—'}
             </span>
           </li>

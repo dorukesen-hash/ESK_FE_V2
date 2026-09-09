@@ -42,6 +42,7 @@ describe('CartDrawer', () => {
         {
           id: 327,
           title: 'Composite Strapping',
+          sku: 'CC40/2',
           image: 'https://cdn.example.com/a.jpg',
           href: '/product/composite-strapping/327',
         },
@@ -52,6 +53,7 @@ describe('CartDrawer', () => {
     useUIStore.setState({ isCartDrawerOpen: true });
     render(<CartDrawer />);
     expect(screen.getByText('Composite Strapping')).toBeInTheDocument();
+    expect(screen.getByText('SKU: CC40/2')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
     expect(useCartStore.getState().items).toEqual([]);
