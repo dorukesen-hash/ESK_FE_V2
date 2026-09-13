@@ -7,7 +7,7 @@ import { AccountSidebar } from '@/components/account/AccountSidebar';
 export default function AccountLayout({ children }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="sticky top-0 z-10">
+      <div className="sticky top-0 z-20">
         <Header />
         <Navbar />
       </div>

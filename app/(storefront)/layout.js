@@ -5,7 +5,7 @@ import { Footer } from '@/components/layout/Footer';
 export default function StorefrontLayout({ children }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="sticky top-0 z-10">
+      <div className="sticky top-0 z-20">
         <Header />
         <Navbar />
       </div>
