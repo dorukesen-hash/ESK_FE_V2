@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search as SearchIcon } from 'lucide-react';
 import { useSearch } from '@/hooks/useSearch';
+import { Button } from '@/components/ui/Button';
 
 function SearchResultRow({ result }) {
   return (
@@ -27,7 +28,8 @@ export function SearchView() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') ?? '';
   const [inputValue, setInputValue] = useState(initialQuery);
-  const { data, isLoading, isError } = useSearch(initialQuery);
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useSearch(initialQuery);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -80,6 +82,18 @@ export function SearchView() {
                   <SearchResultRow key={result.id} result={result} />
                 ))}
               </ul>
+            )}
+            {hasNextPage && (
+              <div className="mt-8 flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? 'Loading…' : 'Load more'}
+                </Button>
+              </div>
             )}
           </>
         )}

@@ -1,8 +1,10 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { slugify } from '@/lib/slugify';
+
+const PAGE_SIZE = 24;
 
 function toSearchResult(row) {
   const categorySlug = slugify(row.category.name);
@@ -20,17 +22,22 @@ function toSearchResult(row) {
 }
 
 export function useSearch(query) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['search', query ?? ''],
-    queryFn: async () => {
+    queryFn: async ({ pageParam }) => {
       const { data } = await api.get('/search', {
-        params: { searchValue: query ?? '' },
+        params: { searchValue: query ?? '', limit: PAGE_SIZE, page: pageParam },
       });
       return data;
     },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((sum, p) => sum + p.rows.length, 0);
+      return loaded < lastPage.count ? allPages.length : undefined;
+    },
     select: (data) => ({
-      count: data.count,
-      results: data.rows.map(toSearchResult),
+      count: data.pages[0]?.count ?? 0,
+      results: data.pages.flatMap((page) => page.rows.map(toSearchResult)),
     }),
     staleTime: 60 * 1000,
   });

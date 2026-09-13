@@ -78,4 +78,48 @@ describe('SearchView', () => {
 
     expect(push).toHaveBeenCalledWith('/search?q=tape');
   });
+
+  it('shows a Load more button when more pages are available and fetches the next page on click', async () => {
+    const fetchNextPage = vi.fn();
+    useSearch.mockReturnValue({
+      data: {
+        count: 50,
+        results: [
+          {
+            id: 1,
+            title: 'Composite Strapping',
+            sku: 'CC40/2',
+            categoryName: 'CORD STRAPPING',
+            subcategoryName: 'Composite Strapping',
+            href: '/product/composite-strapping/1',
+          },
+        ],
+      },
+      isLoading: false,
+      isError: false,
+      fetchNextPage,
+      hasNextPage: true,
+      isFetchingNextPage: false,
+    });
+    render(<SearchView />);
+
+    const loadMore = screen.getByRole('button', { name: 'Load more' });
+    await userEvent.click(loadMore);
+
+    expect(fetchNextPage).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the Load more button once every result is loaded', () => {
+    useSearch.mockReturnValue({
+      data: { count: 1, results: [] },
+      isLoading: false,
+      isError: false,
+      fetchNextPage: vi.fn(),
+      hasNextPage: false,
+      isFetchingNextPage: false,
+    });
+    render(<SearchView />);
+
+    expect(screen.queryByRole('button', { name: /load more/i })).not.toBeInTheDocument();
+  });
 });

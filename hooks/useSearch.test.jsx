@@ -42,7 +42,7 @@ describe('useSearch', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(api.get).toHaveBeenCalledWith('/search', {
-      params: { searchValue: 'strap' },
+      params: { searchValue: 'strap', limit: 24, page: 0 },
     });
     expect(result.current.data).toEqual({
       count: 1,
@@ -65,6 +65,48 @@ describe('useSearch', () => {
     api.get.mockResolvedValue({ data: { count: 0, rows: [] } });
     const { result } = renderHook(() => useSearch(undefined), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(api.get).toHaveBeenCalledWith('/search', { params: { searchValue: '' } });
+    expect(api.get).toHaveBeenCalledWith('/search', {
+      params: { searchValue: '', limit: 24, page: 0 },
+    });
+  });
+
+  it('fetches the next page and appends its rows once more results remain', async () => {
+    api.get
+      .mockResolvedValueOnce({
+        data: {
+          count: 30,
+          rows: [{ id: 1, title: 'First', sku: 'A1', category: { name: 'Cat' }, subcategory: { name: 'Sub' } }],
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          count: 30,
+          rows: [{ id: 2, title: 'Second', sku: 'A2', category: { name: 'Cat' }, subcategory: { name: 'Sub' } }],
+        },
+      });
+
+    const { result } = renderHook(() => useSearch('strap'), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.hasNextPage).toBe(true);
+
+    result.current.fetchNextPage();
+    await waitFor(() => expect(result.current.data.results).toHaveLength(2));
+
+    expect(api.get).toHaveBeenLastCalledWith('/search', {
+      params: { searchValue: 'strap', limit: 24, page: 1 },
+    });
+    expect(result.current.data.results.map((r) => r.id)).toEqual([1, 2]);
+  });
+
+  it('reports no next page once every row has been loaded', async () => {
+    api.get.mockResolvedValue({
+      data: {
+        count: 1,
+        rows: [{ id: 1, title: 'Only', sku: 'A1', category: { name: 'Cat' }, subcategory: { name: 'Sub' } }],
+      },
+    });
+    const { result } = renderHook(() => useSearch('strap'), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.hasNextPage).toBe(false);
   });
 });
