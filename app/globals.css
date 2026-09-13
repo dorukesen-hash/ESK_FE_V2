@@ -150,17 +150,23 @@ body {
   }
 }
 
+/* Applied unconditionally in JSX (no Tailwind data-state arbitrary
+   variant - Tailwind only compiles that against classes registered in
+   its own theme, and these are plain CSS like animate-dropdown-in
+   above). Radix stamps data-state="open"/"closed" on Dialog.Overlay/
+   Dialog.Content itself, so these attribute selectors key directly off
+   that without needing any JS wiring. */
 @media (prefers-reduced-motion: no-preference) {
-  .animate-overlay-in {
+  .animate-drawer-overlay[data-state='open'] {
     animation: overlay-fade-in 200ms ease-out;
   }
-  .animate-overlay-out {
+  .animate-drawer-overlay[data-state='closed'] {
     animation: overlay-fade-out 150ms ease-in;
   }
-  .animate-drawer-in {
+  .animate-drawer-panel[data-state='open'] {
     animation: drawer-slide-in 250ms cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .animate-drawer-out {
+  .animate-drawer-panel[data-state='closed'] {
     animation: drawer-slide-out 200ms ease-in;
   }
 }

@@ -156,8 +156,8 @@ export function CartDrawer() {
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && closeCartDrawer()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-20 bg-black/40 data-[state=closed]:animate-overlay-out data-[state=open]:animate-overlay-in" />
-        <Dialog.Content className="fixed right-0 top-0 z-20 flex h-full w-full max-w-sm flex-col bg-surface p-6 shadow-lg focus:outline-none data-[state=closed]:animate-drawer-out data-[state=open]:animate-drawer-in">
+        <Dialog.Overlay className="animate-drawer-overlay fixed inset-0 z-20 bg-black/40" />
+        <Dialog.Content className="animate-drawer-panel fixed right-0 top-0 z-20 flex h-full w-full max-w-sm flex-col bg-surface p-6 shadow-lg focus:outline-none">
           <div className="flex items-center justify-between">
             <Dialog.Title className="text-lg font-semibold text-text-primary">
               Your Cart
