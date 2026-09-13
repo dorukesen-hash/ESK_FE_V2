@@ -5,6 +5,13 @@ export const useCartStore = create(
   persist(
     (set) => ({
       items: [],
+      // { code, type, value, discountAmount } once a coupon has been
+      // validated and applied - null otherwise. Persisted so it survives
+      // closing the drawer; carried into checkout is a separate follow-up.
+      discountCode: null,
+
+      applyDiscountCode: (discountCode) => set({ discountCode }),
+      clearDiscountCode: () => set({ discountCode: null }),
 
       addItem: (variantId, quantity = 1, isPallet = false) =>
         set((state) => {
@@ -40,7 +47,7 @@ export const useCartStore = create(
           ),
         })),
 
-      clear: () => set({ items: [] }),
+      clear: () => set({ items: [], discountCode: null }),
     }),
     { name: 'esk-guest-cart' }
   )
