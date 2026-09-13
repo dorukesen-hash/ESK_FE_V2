@@ -109,4 +109,42 @@ describe('useSearch', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.hasNextPage).toBe(false);
   });
+
+  it('sends categoryId and subcategoryId when filters are given', async () => {
+    api.get.mockResolvedValue({ data: { count: 0, rows: [] } });
+    const { result } = renderHook(
+      () => useSearch('strap', { categoryId: 9, subcategoryId: 18 }),
+      { wrapper }
+    );
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(api.get).toHaveBeenCalledWith('/search', {
+      params: { searchValue: 'strap', limit: 24, page: 0, categoryId: 9, subcategoryId: 18 },
+    });
+  });
+
+  it('keys the query per filter combination so switching filters does not reuse stale results', async () => {
+    api.get
+      .mockResolvedValueOnce({
+        data: { count: 1, rows: [{ id: 1, title: 'A', sku: 'A', category: { name: 'Cat' }, subcategory: { name: 'Sub' } }] },
+      })
+      .mockResolvedValueOnce({
+        data: { count: 1, rows: [{ id: 2, title: 'B', sku: 'B', category: { name: 'Cat' }, subcategory: { name: 'Sub' } }] },
+      });
+
+    const { result, rerender } = renderHook(
+      ({ categoryId }) => useSearch('strap', { categoryId }),
+      { wrapper, initialProps: { categoryId: 9 } }
+    );
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data.results.map((r) => r.id)).toEqual([1]);
+
+    rerender({ categoryId: 12 });
+    await waitFor(() => expect(result.current.data.results.map((r) => r.id)).toEqual([2]));
+  });
+
+  it('does not fetch when disabled (used for the header preview before 3 characters)', () => {
+    const { result } = renderHook(() => useSearch('st', { enabled: false }), { wrapper });
+    expect(api.get).not.toHaveBeenCalled();
+    expect(result.current.isPending).toBe(true);
+  });
 });

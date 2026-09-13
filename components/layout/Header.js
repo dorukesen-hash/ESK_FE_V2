@@ -2,44 +2,13 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Search, ShoppingCart, User } from 'lucide-react';
+import { ShoppingCart, User } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
 import { CartDrawer } from './CartDrawer';
 import { LoginPopover } from './LoginPopover';
-
-function SearchForm() {
-  const router = useRouter();
-
-  function handleSubmit(event) {
-    event.preventDefault();
-    const query = new FormData(event.currentTarget).get('q')?.toString().trim();
-    router.push(query ? `/search?q=${encodeURIComponent(query)}` : '/search');
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="min-w-0 flex-1" role="search">
-      <label htmlFor="header-search" className="sr-only">
-        Search products
-      </label>
-      <div className="relative">
-        <Search
-          aria-hidden="true"
-          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
-        />
-        <input
-          id="header-search"
-          name="q"
-          type="search"
-          placeholder="Search packaging products..."
-          className="w-full rounded-full border border-border bg-background py-2.5 pl-11 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-      </div>
-    </form>
-  );
-}
+import { HeaderSearch } from './HeaderSearch';
 
 export function Header() {
   const user = useAuthStore((state) => state.user);
@@ -69,7 +38,7 @@ export function Header() {
           />
         </Link>
 
-        <SearchForm />
+        <HeaderSearch />
 
         <div className="flex shrink-0 items-center gap-3">
           {user ? (

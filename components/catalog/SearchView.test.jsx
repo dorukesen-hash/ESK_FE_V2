@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useSearch } from '@/hooks/useSearch';
+import { useCategories } from '@/hooks/useCategories';
 import { SearchView } from './SearchView';
 
 const push = vi.fn();
@@ -15,10 +16,28 @@ vi.mock('@/hooks/useSearch', () => ({
   useSearch: vi.fn(),
 }));
 
+vi.mock('@/hooks/useCategories', () => ({
+  useCategories: vi.fn(),
+}));
+
+const categoriesFixture = [
+  {
+    id: 9,
+    name: 'CORD STRAPPING',
+    subcategories: [{ id: 18, name: 'Composite Strapping' }],
+  },
+  { id: 12, name: 'MAILERS', subcategories: [] },
+];
+
 describe('SearchView', () => {
   beforeEach(() => {
     push.mockClear();
     searchParamsValue = '';
+    useCategories.mockReturnValue({
+      data: categoriesFixture,
+      isLoading: false,
+      isError: false,
+    });
   });
 
   it('shows "All Products" and result count with no query', () => {
@@ -121,5 +140,45 @@ describe('SearchView', () => {
     render(<SearchView />);
 
     expect(screen.queryByRole('button', { name: /load more/i })).not.toBeInTheDocument();
+  });
+
+  it('passes categoryId/subcategoryId from the URL to useSearch and labels the filtered count', () => {
+    searchParamsValue = 'q=strap&categoryId=9&subcategoryId=18';
+    useSearch.mockReturnValue({ data: { count: 17, results: [] }, isLoading: false, isError: false });
+
+    render(<SearchView />);
+
+    expect(useSearch).toHaveBeenCalledWith('strap', { categoryId: 9, subcategoryId: 18 });
+    expect(screen.getByText('17 results in Composite Strapping')).toBeInTheDocument();
+  });
+
+  it('navigates with the categoryId when a category filter is clicked', async () => {
+    searchParamsValue = 'q=strap';
+    useSearch.mockReturnValue({ data: { count: 0, results: [] }, isLoading: false, isError: false });
+    render(<SearchView />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'CORD STRAPPING' }));
+
+    expect(push).toHaveBeenCalledWith('/search?q=strap&categoryId=9');
+  });
+
+  it('navigates with categoryId and subcategoryId when a subcategory filter is clicked', async () => {
+    searchParamsValue = 'q=strap&categoryId=9';
+    useSearch.mockReturnValue({ data: { count: 0, results: [] }, isLoading: false, isError: false });
+    render(<SearchView />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Composite Strapping' }));
+
+    expect(push).toHaveBeenCalledWith('/search?q=strap&categoryId=9&subcategoryId=18');
+  });
+
+  it('clears categoryId/subcategoryId while keeping the query when Clear filters is clicked', async () => {
+    searchParamsValue = 'q=strap&categoryId=9&subcategoryId=18';
+    useSearch.mockReturnValue({ data: { count: 0, results: [] }, isLoading: false, isError: false });
+    render(<SearchView />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+
+    expect(push).toHaveBeenCalledWith('/search?q=strap');
   });
 });

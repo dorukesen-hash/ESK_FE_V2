@@ -21,12 +21,18 @@ function toSearchResult(row) {
   };
 }
 
-export function useSearch(query) {
+export function useSearch(query, { categoryId, subcategoryId, enabled = true } = {}) {
   return useInfiniteQuery({
-    queryKey: ['search', query ?? ''],
+    queryKey: ['search', query ?? '', categoryId ?? null, subcategoryId ?? null],
     queryFn: async ({ pageParam }) => {
       const { data } = await api.get('/search', {
-        params: { searchValue: query ?? '', limit: PAGE_SIZE, page: pageParam },
+        params: {
+          searchValue: query ?? '',
+          limit: PAGE_SIZE,
+          page: pageParam,
+          ...(categoryId ? { categoryId } : {}),
+          ...(subcategoryId ? { subcategoryId } : {}),
+        },
       });
       return data;
     },
@@ -40,5 +46,6 @@ export function useSearch(query) {
       results: data.pages.flatMap((page) => page.rows.map(toSearchResult)),
     }),
     staleTime: 60 * 1000,
+    enabled,
   });
 }
