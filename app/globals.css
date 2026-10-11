@@ -58,6 +58,13 @@
 
 body {
   margin: 0;
+  /* Defensive backstop: a wide table inside its own overflow-x-auto
+     wrapper (see VariantsTable) still inflated the page's own horizontal
+     scrollable area in testing, even though the wrapper itself clipped
+     correctly - a known interaction between overflow:auto containers and
+     intrinsically-wide table content. The table's own scroll still works;
+     this just stops that from ever panning the whole page. */
+  overflow-x: hidden;
 }
 
 @layer base {

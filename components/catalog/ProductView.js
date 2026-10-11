@@ -10,6 +10,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { slugify } from '@/lib/slugify';
 import { Breadcrumbs } from './Breadcrumbs';
 import { QuantityInput } from './QuantityInput';
+import { VariantsTable } from './VariantsTable';
 
 function useBreadcrumbNames(categoryId, subcategoryId) {
   const { data: categories } = useCategories();
@@ -95,6 +96,7 @@ export function ProductView({ variantId }) {
   ];
 
   return (
+    <>
     <main className="mx-auto max-w-6xl px-6 py-16">
       <Breadcrumbs items={breadcrumbItems} />
 
@@ -208,5 +210,8 @@ export function ProductView({ variantId }) {
         </div>
       </div>
     </main>
+
+    <VariantsTable variantId={numericId} />
+    </>
   );
 }

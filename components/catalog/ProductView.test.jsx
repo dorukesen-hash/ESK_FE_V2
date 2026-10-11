@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useVariant } from '@/hooks/useVariant';
 import { useCategories } from '@/hooks/useCategories';
+import { useVariantSiblings } from '@/hooks/useVariantSiblings';
 import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
 import { ProductView } from './ProductView';
@@ -12,6 +13,9 @@ vi.mock('@/hooks/useVariant', () => ({
 }));
 vi.mock('@/hooks/useCategories', () => ({
   useCategories: vi.fn(),
+}));
+vi.mock('@/hooks/useVariantSiblings', () => ({
+  useVariantSiblings: vi.fn(),
 }));
 
 const baseVariant = {
@@ -45,6 +49,7 @@ describe('ProductView', () => {
         },
       ],
     });
+    useVariantSiblings.mockReturnValue({ data: undefined, isLoading: false, isError: false });
   });
 
   it('shows a not-found message when the variant does not resolve', () => {
@@ -94,5 +99,33 @@ describe('ProductView', () => {
     expect(useCartStore.getState().items).toEqual([
       { variantId: 327, quantity: 1, isPallet: true },
     ]);
+  });
+
+  it('renders the variant options table wired to the current variant id', () => {
+    useVariant.mockReturnValue({ data: baseVariant, isLoading: false, isError: false });
+    useVariantSiblings.mockReturnValue({
+      data: {
+        count: 1,
+        level: 'subcategory',
+        levelName: 'Composite Strapping',
+        rows: [
+          {
+            id: 327,
+            title: 'Composite Strapping',
+            sku: 'CC40/2',
+            basePrice: 68,
+            palletPrice: 53,
+            unitsPerPallet: 10,
+            specValues: { size: null, color: 'White', material_type: null, style: null, unit: null, quantity_case: null, units_per_pallet: null, break_strength: null, core_diameter: null },
+          },
+        ],
+      },
+      isLoading: false,
+      isError: false,
+    });
+    render(<ProductView variantId="327" />);
+
+    expect(useVariantSiblings).toHaveBeenCalledWith(327, { all: false });
+    expect(screen.getByRole('heading', { name: 'Available Options' })).toBeInTheDocument();
   });
 });
