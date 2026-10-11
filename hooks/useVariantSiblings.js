@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { SPEC_FIELDS, formatSpecValue } from '@/lib/variantFields';
+import { SPEC_FIELDS, formatSpecValue, extractPriceTiers } from '@/lib/variantFields';
 
 const PREVIEW_LIMIT = 20;
 const ALL_LIMIT = 1000;
@@ -17,7 +17,10 @@ function toSiblingRow(variant) {
     id: variant.id,
     title: variant.title,
     sku: variant.sku ?? null,
-    basePrice: variant.one_four_units != null ? Number(variant.one_four_units) : null,
+    // The 3 quantity-tier prices (1-4 / 5-9 / 10+ units) - "Full pallet" is
+    // excluded here since it's not a column, it's auto-applied on add once
+    // the chosen quantity reaches unitsPerPallet.
+    priceTiers: extractPriceTiers(variant).filter((tier) => tier.label !== 'Full pallet'),
     palletPrice: variant.pallet_pricing != null ? Number(variant.pallet_pricing) : null,
     unitsPerPallet: variant.units_per_pallet != null ? Number(variant.units_per_pallet) : null,
     specValues,

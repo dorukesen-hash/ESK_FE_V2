@@ -113,7 +113,7 @@ describe('ProductView', () => {
             id: 327,
             title: 'Composite Strapping',
             sku: 'CC40/2',
-            basePrice: 68,
+            priceTiers: [{ label: '1-4 units', price: 68 }],
             palletPrice: 53,
             unitsPerPallet: 10,
             specValues: { size: null, color: 'White', material_type: null, style: null, unit: null, quantity_case: null, units_per_pallet: null, break_strength: null, core_diameter: null },

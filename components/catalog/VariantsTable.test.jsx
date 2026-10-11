@@ -25,6 +25,10 @@ function specValues(overrides = {}) {
   };
 }
 
+// The component renders a desktop grid row AND a mobile card for every
+// row (CSS, not JS, decides which is visible), so most text/controls
+// exist twice in the DOM - tests interact with the desktop ("Qty for X",
+// not "Qty for X mobile") instance explicitly.
 describe('VariantsTable', () => {
   beforeEach(() => {
     useCartStore.getState().clear();
@@ -49,15 +53,15 @@ describe('VariantsTable', () => {
     expect(screen.queryByRole('heading', { name: 'Available Options' })).not.toBeInTheDocument();
   });
 
-  it('only shows spec columns that at least one row has a value for', () => {
+  it('only shows spec columns whose value differs somewhere in the set, not ones every row shares', () => {
     useVariantSiblings.mockReturnValue({
       data: {
         count: 2,
         level: 'product',
         levelName: 'Composite Strapping',
         rows: [
-          { id: 327, title: 'Half Inch', sku: 'CC40', basePrice: 68, palletPrice: null, unitsPerPallet: null, specValues: specValues({ color: 'White' }) },
-          { id: 328, title: 'Five Eighths', sku: 'CC50', basePrice: 70, palletPrice: null, unitsPerPallet: null, specValues: specValues({ size: '5/8"' }) },
+          { id: 327, title: 'Half Inch', sku: 'CC40', priceTiers: [], palletPrice: null, unitsPerPallet: null, specValues: specValues({ color: 'White', style: 'Standard Duty' }) },
+          { id: 328, title: 'Five Eighths', sku: 'CC50', priceTiers: [], palletPrice: null, unitsPerPallet: null, specValues: specValues({ color: 'White', style: 'Heavy Duty' }) },
         ],
       },
       isLoading: false,
@@ -65,11 +69,10 @@ describe('VariantsTable', () => {
     });
     render(<VariantsTable variantId={327} />);
 
-    expect(screen.getByRole('columnheader', { name: 'Color' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Size' })).toBeInTheDocument();
-    expect(screen.queryByRole('columnheader', { name: 'Material' })).not.toBeInTheDocument();
-    // Half Inch has no size value - shown as an em dash in that column.
-    expect(screen.getAllByText('—').length).toBeGreaterThan(0);
+    // Style differs between rows (Standard vs Heavy Duty) - shown.
+    expect(screen.getAllByText('Style').length).toBeGreaterThan(0);
+    // Color is "White" on every row - not a useful column, hidden.
+    expect(screen.queryByText('Color')).not.toBeInTheDocument();
   });
 
   it('highlights the current variant row', () => {
@@ -79,8 +82,8 @@ describe('VariantsTable', () => {
         level: 'product',
         levelName: null,
         rows: [
-          { id: 327, title: 'Half Inch', sku: 'CC40', basePrice: 68, palletPrice: null, unitsPerPallet: null, specValues: specValues() },
-          { id: 328, title: 'Five Eighths', sku: 'CC50', basePrice: 70, palletPrice: null, unitsPerPallet: null, specValues: specValues() },
+          { id: 327, title: 'Half Inch', sku: 'CC40', priceTiers: [], palletPrice: null, unitsPerPallet: null, specValues: specValues() },
+          { id: 328, title: 'Five Eighths', sku: 'CC50', priceTiers: [], palletPrice: null, unitsPerPallet: null, specValues: specValues() },
         ],
       },
       isLoading: false,
@@ -88,8 +91,46 @@ describe('VariantsTable', () => {
     });
     render(<VariantsTable variantId={327} />);
 
-    expect(screen.getByText('Half Inch').closest('tr')).toHaveClass('bg-accent-tint');
-    expect(screen.getByText('Five Eighths').closest('tr')).not.toHaveClass('bg-accent-tint');
+    const [currentDesktop] = screen.getAllByText('Half Inch');
+    const [otherDesktop] = screen.getAllByText('Five Eighths');
+    // The row wrapper (two levels up from the title) carries the highlight.
+    expect(currentDesktop.closest('div.border-b')).toHaveClass('bg-accent-tint');
+    expect(otherDesktop.closest('div.border-b')).not.toHaveClass('bg-accent-tint');
+  });
+
+  it('shows all 3 quantity-tier prices per row', () => {
+    useVariantSiblings.mockReturnValue({
+      data: {
+        count: 1,
+        level: 'product',
+        levelName: null,
+        rows: [
+          {
+            id: 327,
+            title: 'Half Inch',
+            sku: 'CC40',
+            priceTiers: [
+              { label: '1-4 units', price: 12 },
+              { label: '5-9 units', price: 11 },
+              { label: '10+ units', price: 10 },
+            ],
+            palletPrice: null,
+            unitsPerPallet: null,
+            specValues: specValues(),
+          },
+        ],
+      },
+      isLoading: false,
+      isError: false,
+    });
+    render(<VariantsTable variantId={327} />);
+
+    expect(screen.getAllByText('1-4 units').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('$12.00').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('5-9 units').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('$11.00').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('10+ units').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('$10.00').length).toBeGreaterThan(0);
   });
 
   it('adds the row quantity to the cart and opens the drawer', async () => {
@@ -99,7 +140,7 @@ describe('VariantsTable', () => {
         level: 'product',
         levelName: null,
         rows: [
-          { id: 327, title: 'Half Inch', sku: 'CC40', basePrice: 68, palletPrice: 53, unitsPerPallet: 10, specValues: specValues() },
+          { id: 327, title: 'Half Inch', sku: 'CC40', priceTiers: [{ label: '1-4 units', price: 68 }], palletPrice: 53, unitsPerPallet: 10, specValues: specValues() },
         ],
       },
       isLoading: false,
@@ -107,10 +148,11 @@ describe('VariantsTable', () => {
     });
     render(<VariantsTable variantId={327} />);
 
-    const qty = screen.getByLabelText('Quantity for Half Inch');
+    const [qty] = screen.getAllByLabelText('Quantity for Half Inch');
     await userEvent.clear(qty);
     await userEvent.type(qty, '3');
-    await userEvent.click(screen.getByRole('button', { name: 'Add' }));
+    const [desktopAdd] = screen.getAllByRole('button', { name: 'Add' });
+    await userEvent.click(desktopAdd);
 
     expect(useCartStore.getState().items).toEqual([{ variantId: 327, quantity: 3, isPallet: false }]);
     expect(useUIStore.getState().isCartDrawerOpen).toBe(true);
@@ -123,7 +165,7 @@ describe('VariantsTable', () => {
         level: 'product',
         levelName: null,
         rows: [
-          { id: 327, title: 'Half Inch', sku: 'CC40', basePrice: 68, palletPrice: 53, unitsPerPallet: 10, specValues: specValues() },
+          { id: 327, title: 'Half Inch', sku: 'CC40', priceTiers: [{ label: '1-4 units', price: 68 }], palletPrice: 53, unitsPerPallet: 10, specValues: specValues() },
         ],
       },
       isLoading: false,
@@ -131,10 +173,11 @@ describe('VariantsTable', () => {
     });
     render(<VariantsTable variantId={327} />);
 
-    const qty = screen.getByLabelText('Quantity for Half Inch');
+    const [qty] = screen.getAllByLabelText('Quantity for Half Inch');
     await userEvent.clear(qty);
     await userEvent.type(qty, '10');
-    await userEvent.click(screen.getByRole('button', { name: 'Add' }));
+    const [desktopAdd] = screen.getAllByRole('button', { name: 'Add' });
+    await userEvent.click(desktopAdd);
 
     expect(useCartStore.getState().items).toEqual([{ variantId: 327, quantity: 10, isPallet: true }]);
   });
@@ -146,7 +189,7 @@ describe('VariantsTable', () => {
         level: 'subcategory',
         levelName: 'Corrugated Boxes',
         rows: [
-          { id: 327, title: 'Half Inch', sku: 'CC40', basePrice: 68, palletPrice: null, unitsPerPallet: null, specValues: specValues() },
+          { id: 327, title: 'Half Inch', sku: 'CC40', priceTiers: [], palletPrice: null, unitsPerPallet: null, specValues: specValues() },
         ],
       },
       isLoading: false,
@@ -167,7 +210,7 @@ describe('VariantsTable', () => {
         level: 'product',
         levelName: null,
         rows: [
-          { id: 327, title: 'Half Inch', sku: 'CC40', basePrice: 68, palletPrice: null, unitsPerPallet: null, specValues: specValues() },
+          { id: 327, title: 'Half Inch', sku: 'CC40', priceTiers: [], palletPrice: null, unitsPerPallet: null, specValues: specValues() },
         ],
       },
       isLoading: false,

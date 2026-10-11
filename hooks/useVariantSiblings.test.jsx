@@ -68,7 +68,11 @@ describe('useVariantSiblings', () => {
           id: 870,
           title: '4 x 4 x 4 RSC - ECT32 - Kraft',
           sku: 'BOX-444',
-          basePrice: 12,
+          priceTiers: [
+            { label: '1-4 units', price: 12 },
+            { label: '5-9 units', price: 11 },
+            { label: '10+ units', price: 10 },
+          ],
           palletPrice: 400,
           unitsPerPallet: 50,
           specValues: {
@@ -87,7 +91,7 @@ describe('useVariantSiblings', () => {
           id: 871,
           title: '5 x 5 x 5 RSC - ECT32 - Kraft',
           sku: 'BOX-555',
-          basePrice: 14,
+          priceTiers: [{ label: '1-4 units', price: 14 }],
           palletPrice: null,
           unitsPerPallet: null,
           specValues: {
