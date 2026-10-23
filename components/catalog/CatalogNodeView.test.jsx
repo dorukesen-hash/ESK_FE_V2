@@ -53,15 +53,16 @@ describe('CatalogNodeView', () => {
     ).toHaveAttribute('href', '/category/cord-strapping/composite-strapping');
   });
 
-  it('renders a product card per variant on the resolved node', () => {
+  it('renders a buyable table row per variant on the resolved node', () => {
     useCatalogTree.mockReturnValue({ data: tree, isLoading: false, isError: false });
     render(<CatalogNodeView path={['cord-strapping', 'composite-strapping']} />);
 
     expect(screen.getByRole('heading', { name: 'Composite Strapping' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /^A/ })).toHaveAttribute(
+    expect(screen.getAllByRole('link', { name: 'A' })[0]).toHaveAttribute(
       'href',
       '/product/composite-strapping/327'
     );
+    expect(screen.getAllByRole('button', { name: 'Add' }).length).toBeGreaterThan(0);
   });
 
   it('redirects to the canonical path when the URL does not match it', () => {
@@ -114,7 +115,7 @@ describe('CatalogNodeView', () => {
     expect(screen.getByText('2 products')).toBeInTheDocument();
   });
 
-  it('renders both child tiles and a product grid when a node has children and variants at once', () => {
+  it('renders both child tiles and a buyable table when a node has children and variants at once', () => {
     const mixedTree = [
       {
         id: 9,
@@ -130,6 +131,6 @@ describe('CatalogNodeView', () => {
     render(<CatalogNodeView path={['cord-strapping']} />);
 
     expect(screen.getByRole('link', { name: /Composite Strapping/ })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /^Loose variant/ })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /^Loose variant/ }).length).toBeGreaterThan(0);
   });
 });

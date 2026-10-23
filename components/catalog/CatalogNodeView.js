@@ -14,23 +14,11 @@ import {
 import { resolveImageUrl } from '@/lib/cdn';
 import { slugify } from '@/lib/slugify';
 import { Breadcrumbs } from './Breadcrumbs';
-import { ProductCard } from './ProductCard';
+import { VariantsTable } from './VariantsTable';
 
 function nodeImage(node) {
   const url = node.images?.[0]?.image?.url;
   return url ? resolveImageUrl(url) : null;
-}
-
-function toProductCard(variant, node) {
-  return {
-    id: variant.id,
-    title: variant.title,
-    sku: variant.sku ?? null,
-    price: variant.one_four_units ? Number(variant.one_four_units) : null,
-    unit: variant.unit,
-    image: nodeImage(node),
-    href: `/product/${slugify(node.name)}/${variant.id}`,
-  };
 }
 
 export function CatalogNodeView({ path }) {
@@ -142,10 +130,8 @@ export function CatalogNodeView({ path }) {
           <p className="mt-10 text-text-muted">
             {variants.length} {variants.length === 1 ? 'product' : 'products'}
           </p>
-          <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
-            {variants.map((variant) => (
-              <ProductCard key={variant.id} product={toProductCard(variant, node)} />
-            ))}
+          <div className="mt-4">
+            <VariantsTable variants={variants} productSlug={slugify(node.name)} />
           </div>
         </>
       )}
