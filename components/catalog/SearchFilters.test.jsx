@@ -1,23 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useCategories } from '@/hooks/useCategories';
+import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { SearchFilters } from './SearchFilters';
 
-vi.mock('@/hooks/useCategories', () => ({
-  useCategories: vi.fn(),
+vi.mock('@/hooks/useCatalogTree', () => ({
+  useCatalogTree: vi.fn(),
 }));
 
-const categoriesFixture = [
+const treeFixture = [
   {
     id: 9,
     name: 'CORD STRAPPING',
-    subcategories: [
-      { id: 18, name: 'Composite Strapping' },
-      { id: 16, name: 'Woven Strapping' },
+    children: [
+      { id: 18, name: 'Composite Strapping', children: [] },
+      { id: 16, name: 'Woven Strapping', children: [] },
     ],
   },
-  { id: 12, name: 'MAILERS', subcategories: [] },
+  { id: 12, name: 'MAILERS', children: [] },
 ];
 
 function renderFilters(props = {}) {
@@ -35,36 +35,36 @@ function renderFilters(props = {}) {
 
 describe('SearchFilters', () => {
   beforeEach(() => {
-    useCategories.mockReturnValue({ data: categoriesFixture, isLoading: false, isError: false });
+    useCatalogTree.mockReturnValue({ data: treeFixture, isLoading: false, isError: false });
   });
 
-  it('lists every category and keeps subcategories collapsed by default', () => {
+  it('lists every top-level node and keeps children collapsed by default', () => {
     renderFilters();
     expect(screen.getByRole('button', { name: 'CORD STRAPPING' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'MAILERS' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Composite Strapping' })).not.toBeInTheDocument();
   });
 
-  it('expands a category to show its subcategories on chevron click', async () => {
+  it('expands a node to show its children on chevron click', async () => {
     renderFilters();
     await userEvent.click(screen.getByRole('button', { name: 'Expand CORD STRAPPING' }));
     expect(screen.getByRole('button', { name: 'Composite Strapping' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Woven Strapping' })).toBeInTheDocument();
   });
 
-  it('auto-expands the category holding the active subcategory', () => {
+  it('auto-expands the node holding the active child', () => {
     renderFilters({ categoryId: 9, subcategoryId: 18 });
     expect(screen.getByRole('button', { name: 'Composite Strapping' })).toBeInTheDocument();
   });
 
-  it('calls onSelectCategory with the category id when a category name is clicked', async () => {
+  it('calls onSelectCategory with the node id when a top-level name is clicked', async () => {
     const onSelectCategory = vi.fn();
     renderFilters({ onSelectCategory });
     await userEvent.click(screen.getByRole('button', { name: 'MAILERS' }));
     expect(onSelectCategory).toHaveBeenCalledWith(12);
   });
 
-  it('calls onSelectSubcategory with the parent category id and subcategory id', async () => {
+  it('calls onSelectSubcategory with the parent node id and child id', async () => {
     const onSelectSubcategory = vi.fn();
     renderFilters({ categoryId: 9, onSelectSubcategory });
     await userEvent.click(screen.getByRole('button', { name: 'Woven Strapping' }));

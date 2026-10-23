@@ -2,42 +2,41 @@
 
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { useCategories } from '@/hooks/useCategories';
+import { useCatalogTree } from '@/hooks/useCatalogTree';
 
 function CategoryGroup({
-  category,
+  node,
   selectedCategoryId,
   selectedSubcategoryId,
   onSelectCategory,
   onSelectSubcategory,
 }) {
-  const isActiveCategory = selectedCategoryId === category.id && !selectedSubcategoryId;
-  const hasActiveSubcategory = category.subcategories.some(
-    (subcategory) => subcategory.id === selectedSubcategoryId
-  );
+  const children = node.children ?? [];
+  const isActiveCategory = selectedCategoryId === node.id && !selectedSubcategoryId;
+  const hasActiveSubcategory = children.some((child) => child.id === selectedSubcategoryId);
   const [open, setOpen] = useState(isActiveCategory || hasActiveSubcategory);
-  const hasSubcategories = category.subcategories.length > 0;
+  const hasChildren = children.length > 0;
 
   return (
     <div className="border-b border-border py-3 first:pt-0 last:border-b-0">
       <div className="flex items-center gap-1">
         <button
           type="button"
-          onClick={() => onSelectCategory(category.id)}
+          onClick={() => onSelectCategory(node.id)}
           className={`flex-1 text-left text-sm font-bold uppercase tracking-wide transition-colors ${
             isActiveCategory || hasActiveSubcategory
               ? 'text-primary'
               : 'text-text-primary hover:text-primary'
           }`}
         >
-          {category.name}
+          {node.name}
         </button>
-        {hasSubcategories && (
+        {hasChildren && (
           <button
             type="button"
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
-            aria-label={`${open ? 'Collapse' : 'Expand'} ${category.name}`}
+            aria-label={`${open ? 'Collapse' : 'Expand'} ${node.name}`}
             className="flex h-6 w-6 shrink-0 items-center justify-center text-text-muted transition-colors hover:text-primary"
           >
             <ChevronDown
@@ -48,20 +47,20 @@ function CategoryGroup({
         )}
       </div>
 
-      {open && hasSubcategories && (
+      {open && hasChildren && (
         <ul className="mt-2 space-y-1.5 border-l-2 border-accent-tint-strong pl-3">
-          {category.subcategories.map((subcategory) => {
-            const active = selectedSubcategoryId === subcategory.id;
+          {children.map((child) => {
+            const active = selectedSubcategoryId === child.id;
             return (
-              <li key={subcategory.id}>
+              <li key={child.id}>
                 <button
                   type="button"
-                  onClick={() => onSelectSubcategory(category.id, subcategory.id)}
+                  onClick={() => onSelectSubcategory(node.id, child.id)}
                   className={`block w-full py-0.5 text-left text-sm transition-colors ${
                     active ? 'font-semibold text-primary' : 'text-text-muted hover:text-primary'
                   }`}
                 >
-                  {subcategory.name}
+                  {child.name}
                 </button>
               </li>
             );
@@ -79,7 +78,7 @@ export function SearchFilters({
   onSelectSubcategory,
   onClear,
 }) {
-  const { data: categories, isLoading, isError } = useCategories();
+  const { data: tree, isLoading, isError } = useCatalogTree();
   const [mobileOpen, setMobileOpen] = useState(false);
   const hasActiveFilter = Boolean(categoryId || subcategoryId);
 
@@ -109,10 +108,10 @@ export function SearchFilters({
         )}
         {isLoading && <p className="text-sm text-text-muted">Loading filters…</p>}
         {isError && <p className="text-sm text-text-muted">Filters unavailable.</p>}
-        {categories?.map((category) => (
+        {tree?.map((node) => (
           <CategoryGroup
-            key={category.id}
-            category={category}
+            key={node.id}
+            node={node}
             selectedCategoryId={categoryId}
             selectedSubcategoryId={subcategoryId}
             onSelectCategory={onSelectCategory}

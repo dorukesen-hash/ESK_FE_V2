@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useSearch } from '@/hooks/useSearch';
-import { useCategories } from '@/hooks/useCategories';
+import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { SearchView } from './SearchView';
 
 const push = vi.fn();
@@ -16,25 +16,25 @@ vi.mock('@/hooks/useSearch', () => ({
   useSearch: vi.fn(),
 }));
 
-vi.mock('@/hooks/useCategories', () => ({
-  useCategories: vi.fn(),
+vi.mock('@/hooks/useCatalogTree', () => ({
+  useCatalogTree: vi.fn(),
 }));
 
-const categoriesFixture = [
+const treeFixture = [
   {
     id: 9,
     name: 'CORD STRAPPING',
-    subcategories: [{ id: 18, name: 'Composite Strapping' }],
+    children: [{ id: 18, name: 'Composite Strapping', children: [] }],
   },
-  { id: 12, name: 'MAILERS', subcategories: [] },
+  { id: 12, name: 'MAILERS', children: [] },
 ];
 
 describe('SearchView', () => {
   beforeEach(() => {
     push.mockClear();
     searchParamsValue = '';
-    useCategories.mockReturnValue({
-      data: categoriesFixture,
+    useCatalogTree.mockReturnValue({
+      data: treeFixture,
       isLoading: false,
       isError: false,
     });

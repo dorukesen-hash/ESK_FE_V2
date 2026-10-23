@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search as SearchIcon } from 'lucide-react';
 import { useSearch } from '@/hooks/useSearch';
-import { useCategories } from '@/hooks/useCategories';
+import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { Button } from '@/components/ui/Button';
 import { SearchFilters } from './SearchFilters';
 
@@ -49,11 +49,11 @@ export function SearchView() {
     initialQuery,
     { categoryId, subcategoryId }
   );
-  const { data: categories } = useCategories();
+  const { data: tree } = useCatalogTree();
 
-  const activeCategory = categories?.find((category) => category.id === categoryId);
-  const activeSubcategory = activeCategory?.subcategories.find(
-    (subcategory) => subcategory.id === subcategoryId
+  const activeCategory = tree?.find((node) => node.id === categoryId);
+  const activeSubcategory = activeCategory?.children?.find(
+    (child) => child.id === subcategoryId
   );
   const activeFilterName = activeSubcategory?.name ?? activeCategory?.name;
 
