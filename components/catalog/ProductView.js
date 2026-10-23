@@ -8,6 +8,7 @@ import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
 import { findNode, findAncestors, canonicalPath } from '@/lib/catalogNodeTree';
+import { slugify } from '@/lib/slugify';
 import { Breadcrumbs } from './Breadcrumbs';
 import { QuantityInput } from './QuantityInput';
 import { VariantsTable } from './VariantsTable';
@@ -211,7 +212,21 @@ export function ProductView({ variantId }) {
       </div>
     </main>
 
-    <VariantsTable variantId={numericId} />
+    {node && node.variants.length > 0 && (
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Options</p>
+        <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary">
+          Available Options
+        </h2>
+        <div className="mt-6">
+          <VariantsTable
+            variants={node.variants}
+            currentVariantId={numericId}
+            productSlug={slugify(node.name)}
+          />
+        </div>
+      </section>
+    )}
     </>
   );
 }

@@ -1,12 +1,31 @@
 'use client';
 
 import { useState } from 'react';
-import { useVariantSiblings } from '@/hooks/useVariantSiblings';
+import Link from 'next/link';
 import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
-import { SPEC_FIELDS } from '@/lib/variantFields';
+import { SPEC_FIELDS, formatSpecValue, extractPriceTiers } from '@/lib/variantFields';
 import { Button } from '@/components/ui/Button';
 import { QuantityInput } from './QuantityInput';
+
+const PREVIEW_LIMIT = 20;
+
+function toTableRow(variant) {
+  const specValues = {};
+  for (const field of SPEC_FIELDS) {
+    specValues[field.key] = formatSpecValue(variant, field);
+  }
+
+  return {
+    id: variant.id,
+    title: variant.title,
+    sku: variant.sku ?? null,
+    priceTiers: extractPriceTiers(variant).filter((tier) => tier.label !== 'Full pallet'),
+    palletPrice: variant.pallet_pricing != null ? Number(variant.pallet_pricing) : null,
+    unitsPerPallet: variant.units_per_pallet != null ? Number(variant.units_per_pallet) : null,
+    specValues,
+  };
+}
 
 // Only columns where the value actually differs somewhere in this set of
 // rows are worth a column - if every variant shares the same Material, a
@@ -33,11 +52,9 @@ function PriceTiers({ tiers }) {
 }
 
 // Renders as one CSS grid row on sm+ (columns fit the container width and
-// shrink/truncate instead of forcing a wider box - a plain <table>'s
-// auto-layout refused to shrink below its content, which is what pushed
-// the whole page into horizontal scroll) and as a stacked card below sm,
-// so there's never a horizontally-scrolling table on mobile.
-function VariantRow({ row, isCurrent, visibleFields, gridTemplateColumns }) {
+// shrink/truncate instead of forcing a wider box) and as a stacked card
+// below sm, so there's never a horizontally-scrolling table on mobile.
+function VariantRow({ row, href, isCurrent, visibleFields, gridTemplateColumns }) {
   const [quantity, setQuantity] = useState(1);
   const addItem = useCartStore((state) => state.addItem);
   const openCartDrawer = useUIStore((state) => state.openCartDrawer);
@@ -45,7 +62,8 @@ function VariantRow({ row, isCurrent, visibleFields, gridTemplateColumns }) {
   function handleAdd() {
     // No pallet checkbox here - if the chosen quantity reaches the
     // variant's own pallet threshold, treat it as a pallet order
-    // automatically, same price outcome as the manual checkbox above.
+    // automatically, same price outcome as the manual checkbox on the
+    // product page's own buy box.
     const isPallet = Boolean(
       row.palletPrice != null && row.unitsPerPallet != null && quantity >= row.unitsPerPallet
     );
@@ -53,18 +71,20 @@ function VariantRow({ row, isCurrent, visibleFields, gridTemplateColumns }) {
     openCartDrawer();
   }
 
-  const qtyFieldId = `siblings-qty-${row.id}`;
+  const qtyFieldId = `variants-table-qty-${row.id}`;
   const rowClass = isCurrent ? 'bg-accent-tint' : '';
 
   return (
     <div className={`border-b border-border py-3 last:border-b-0 sm:py-2 ${rowClass}`}>
       {/* Desktop/tablet: one grid row */}
-      <div
-        className="hidden items-center gap-3 px-3 sm:grid"
-        style={{ gridTemplateColumns }}
-      >
+      <div className="hidden items-center gap-3 px-3 sm:grid" style={{ gridTemplateColumns }}>
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-text-primary">{row.title}</p>
+          <Link
+            href={href}
+            className="truncate text-sm font-medium text-text-primary hover:text-primary"
+          >
+            {row.title}
+          </Link>
           {row.sku && <p className="truncate text-xs text-text-muted">SKU: {row.sku}</p>}
         </div>
         {visibleFields.map((field) => (
@@ -91,7 +111,9 @@ function VariantRow({ row, isCurrent, visibleFields, gridTemplateColumns }) {
 
       {/* Mobile: stacked card */}
       <div className="rounded-lg px-3 sm:hidden">
-        <p className="text-sm font-medium text-text-primary">{row.title}</p>
+        <Link href={href} className="text-sm font-medium text-text-primary hover:text-primary">
+          {row.title}
+        </Link>
         {row.sku && <p className="text-xs text-text-muted">SKU: {row.sku}</p>}
 
         {visibleFields.length > 0 && (
@@ -128,70 +150,54 @@ function VariantRow({ row, isCurrent, visibleFields, gridTemplateColumns }) {
   );
 }
 
-export function VariantsTable({ variantId }) {
+export function VariantsTable({ variants, currentVariantId, productSlug }) {
   const [showAll, setShowAll] = useState(false);
-  const { data, isLoading, isError } = useVariantSiblings(variantId, { all: showAll });
 
-  if (isLoading) {
-    return (
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <div className="h-4 w-24 animate-pulse rounded bg-button-secondary-bg" />
-        <div className="mt-3 h-7 w-56 animate-pulse rounded bg-button-secondary-bg" />
-        <div className="mt-6 h-40 w-full animate-pulse rounded-lg bg-button-secondary-bg" />
-      </section>
-    );
-  }
+  if (!variants || variants.length === 0) return null;
 
-  if (isError || !data || data.rows.length === 0) return null;
-
-  const visibleFields = discriminatingFields(data.rows);
-  const hasMore = !showAll && data.count > data.rows.length;
+  const rows = variants.map(toTableRow);
+  const visibleFields = discriminatingFields(rows);
+  const hasMore = !showAll && rows.length > PREVIEW_LIMIT;
+  const visibleRows = showAll ? rows : rows.slice(0, PREVIEW_LIMIT);
   const gridTemplateColumns = `minmax(0,1.6fr) ${visibleFields
     .map(() => 'minmax(0,1fr)')
     .join(' ')} 150px 88px 84px`;
 
   return (
-    <section className="mx-auto max-w-6xl px-6 py-16">
-      <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Options</p>
-      <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary">
-        Available Options
-      </h2>
+    <div className="rounded-lg border border-border">
+      <div
+        className="hidden items-center gap-3 border-b border-border px-3 py-2 text-xs font-semibold uppercase tracking-wide text-text-muted sm:grid"
+        style={{ gridTemplateColumns }}
+      >
+        <span>Variant</span>
+        {visibleFields.map((field) => (
+          <span key={field.key}>{field.label}</span>
+        ))}
+        <span>Price</span>
+        <span>Qty</span>
+        <span />
+      </div>
 
-      <div className="mt-6 rounded-lg border border-border">
-        <div
-          className="hidden items-center gap-3 border-b border-border px-3 py-2 text-xs font-semibold uppercase tracking-wide text-text-muted sm:grid"
-          style={{ gridTemplateColumns }}
-        >
-          <span>Variant</span>
-          {visibleFields.map((field) => (
-            <span key={field.key}>{field.label}</span>
-          ))}
-          <span>Price</span>
-          <span>Qty</span>
-          <span />
-        </div>
-
-        <div className="px-0">
-          {data.rows.map((row) => (
-            <VariantRow
-              key={row.id}
-              row={row}
-              isCurrent={row.id === variantId}
-              visibleFields={visibleFields}
-              gridTemplateColumns={gridTemplateColumns}
-            />
-          ))}
-        </div>
+      <div className="px-0">
+        {visibleRows.map((row) => (
+          <VariantRow
+            key={row.id}
+            row={row}
+            href={`/product/${productSlug}/${row.id}`}
+            isCurrent={row.id === currentVariantId}
+            visibleFields={visibleFields}
+            gridTemplateColumns={gridTemplateColumns}
+          />
+        ))}
       </div>
 
       {hasMore && (
-        <div className="mt-6 flex justify-center">
+        <div className="flex justify-center border-t border-border p-4">
           <Button type="button" variant="outline" onClick={() => setShowAll(true)}>
-            Load all {data.count}
-            {data.levelName ? ` in ${data.levelName}` : ''}
+            Show all {rows.length}
           </Button>
         </div>
       )}
-    </section>
+    </div>
   );
 }

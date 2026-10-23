@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useVariant } from '@/hooks/useVariant';
 import { useCatalogTree } from '@/hooks/useCatalogTree';
-import { useVariantSiblings } from '@/hooks/useVariantSiblings';
 import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
 import { ProductView } from './ProductView';
@@ -13,9 +12,6 @@ vi.mock('@/hooks/useVariant', () => ({
 }));
 vi.mock('@/hooks/useCatalogTree', () => ({
   useCatalogTree: vi.fn(),
-}));
-vi.mock('@/hooks/useVariantSiblings', () => ({
-  useVariantSiblings: vi.fn(),
 }));
 
 const baseVariant = {
@@ -41,7 +37,7 @@ const tree = [
   {
     id: 9,
     name: 'CORD STRAPPING',
-    children: [{ id: 18, name: 'Composite Strapping', children: [] }],
+    children: [{ id: 18, name: 'Composite Strapping', children: [], variants: [] }],
   },
 ];
 
@@ -50,7 +46,6 @@ describe('ProductView', () => {
     useCartStore.getState().clear();
     useUIStore.setState({ isCartDrawerOpen: false });
     useCatalogTree.mockReturnValue({ data: tree });
-    useVariantSiblings.mockReturnValue({ data: undefined, isLoading: false, isError: false });
   });
 
   it('shows a not-found message when the variant does not resolve', () => {
@@ -102,32 +97,42 @@ describe('ProductView', () => {
     ]);
   });
 
-  it('renders the variant options table wired to the current variant id', () => {
+  it('renders the variant options table sourced from the resolved node, with a link to each row', () => {
     useVariant.mockReturnValue({ data: baseVariant, isLoading: false, isError: false });
-    useVariantSiblings.mockReturnValue({
-      data: {
-        count: 1,
-        level: 'subcategory',
-        levelName: 'Composite Strapping',
-        rows: [
-          {
-            id: 327,
-            title: 'Composite Strapping',
-            sku: 'CC40/2',
-            priceTiers: [{ label: '1-4 units', price: 68 }],
-            palletPrice: 53,
-            unitsPerPallet: 10,
-            specValues: { size: null, color: 'White', material_type: null, style: null, unit: null, quantity_case: null, units_per_pallet: null, break_strength: null, core_diameter: null },
-          },
-        ],
-      },
-      isLoading: false,
-      isError: false,
+    useCatalogTree.mockReturnValue({
+      data: [
+        {
+          id: 9,
+          name: 'CORD STRAPPING',
+          children: [
+            {
+              id: 18,
+              name: 'Composite Strapping',
+              children: [],
+              variants: [
+                {
+                  id: 327,
+                  title: 'Composite Strapping',
+                  sku: 'CC40/2',
+                  one_four_units: '68.00',
+                  pallet_pricing: '53.00',
+                  units_per_pallet: 10,
+                  color: 'White',
+                },
+              ],
+            },
+          ],
+        },
+      ],
     });
     render(<ProductView variantId="327" />);
 
-    expect(useVariantSiblings).toHaveBeenCalledWith(327, { all: false });
     expect(screen.getByRole('heading', { name: 'Available Options' })).toBeInTheDocument();
+    expect(
+      screen
+        .getAllByRole('link', { name: 'Composite Strapping' })
+        .some((link) => link.getAttribute('href') === '/product/composite-strapping/327')
+    ).toBe(true);
   });
 
   it('renders without a breadcrumb category link when the variant has no nodeId', () => {
