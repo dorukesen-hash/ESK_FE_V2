@@ -1,16 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useCategories } from '@/hooks/useCategories';
+import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { Navbar } from './Navbar';
 
-vi.mock('@/hooks/useCategories', () => ({
-  useCategories: vi.fn(),
+vi.mock('@/hooks/useCatalogTree', () => ({
+  useCatalogTree: vi.fn(),
 }));
 
 describe('Navbar', () => {
   it('renders About Us as a real link', () => {
-    useCategories.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+    useCatalogTree.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     render(<Navbar />);
     expect(screen.getByRole('link', { name: 'About Us' })).toHaveAttribute(
       'href',
@@ -19,7 +19,7 @@ describe('Navbar', () => {
   });
 
   it('renders Knowledge Center as a disabled, non-navigating item', () => {
-    useCategories.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+    useCatalogTree.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     render(<Navbar />);
 
     const item = screen.getByText('Knowledge Center').closest('[aria-disabled="true"]');
@@ -29,7 +29,7 @@ describe('Navbar', () => {
   });
 
   it('renders Industries We Serve as a real link to the homepage section', () => {
-    useCategories.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+    useCatalogTree.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     render(<Navbar />);
     expect(
       screen.getByRole('link', { name: 'Industries We Serve' })
@@ -47,7 +47,7 @@ describe('Navbar', () => {
     'shows a loading state inside the mega menu',
     { timeout: 15000, retry: 2 },
     async () => {
-      useCategories.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+      useCatalogTree.mockReturnValue({ data: undefined, isLoading: true, isError: false });
       render(<Navbar />);
       await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
       expect(await screen.findByText('Loading categories…')).toBeInTheDocument();
@@ -58,7 +58,7 @@ describe('Navbar', () => {
     'shows an error state inside the mega menu',
     { timeout: 15000, retry: 2 },
     async () => {
-      useCategories.mockReturnValue({ data: undefined, isLoading: false, isError: true });
+      useCatalogTree.mockReturnValue({ data: undefined, isLoading: false, isError: true });
       render(<Navbar />);
       await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
       expect(await screen.findByText('Categories unavailable.')).toBeInTheDocument();
@@ -66,20 +66,20 @@ describe('Navbar', () => {
   );
 
   it(
-    'renders each category with its subcategories and a View All Products link',
+    'renders each node with its children and a View All Products link',
     { timeout: 15000, retry: 2 },
     async () => {
-      useCategories.mockReturnValue({
+      useCatalogTree.mockReturnValue({
         data: [
           {
             id: 12,
             name: 'EDGE PROTECTION',
-            subcategories: [
-              { id: 24, name: 'Corner Board' },
-              { id: 25, name: 'Strapping Protectors' },
+            children: [
+              { id: 24, name: 'Corner Board', children: [] },
+              { id: 25, name: 'Strapping Protectors', children: [] },
             ],
           },
-          { id: 7, name: 'Stretch Wrap', subcategories: [] },
+          { id: 7, name: 'Stretch Wrap', children: [] },
         ],
         isLoading: false,
         isError: false,

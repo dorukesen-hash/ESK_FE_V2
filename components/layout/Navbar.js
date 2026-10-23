@@ -4,8 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ChevronDown } from 'lucide-react';
-import { useCategories } from '@/hooks/useCategories';
-import { slugify } from '@/lib/slugify';
+import { useCatalogTree } from '@/hooks/useCatalogTree';
+import { canonicalPath } from '@/lib/catalogNodeTree';
 
 // Item set mirrors ESK-Website-Frontend's navbar (content/navigation.js):
 // a "Shop Products" mega menu followed by Industries We Serve, Knowledge
@@ -32,9 +32,56 @@ function ComingSoonItem({ label }) {
   );
 }
 
+function navHref(tree, nodeId) {
+  return `/category/${canonicalPath(tree, nodeId).join('/')}`;
+}
+
+function NavNode({ tree, node, depth }) {
+  const link = (
+    <DropdownMenu.Item asChild>
+      <Link
+        href={navHref(tree, node.id)}
+        className={
+          depth === 0
+            ? 'block text-sm font-bold uppercase tracking-wide text-text-primary transition-colors hover:text-primary'
+            : 'block text-sm text-text-muted transition-colors hover:text-primary'
+        }
+      >
+        {node.name}
+      </Link>
+    </DropdownMenu.Item>
+  );
+
+  const nested = node.children?.length > 0 && (
+    <ul className="mt-3 space-y-1.5 border-l-2 border-accent-tint-strong pl-3">
+      {node.children.map((child) => (
+        <li key={child.id}>
+          <NavNode tree={tree} node={child} depth={depth + 1} />
+        </li>
+      ))}
+    </ul>
+  );
+
+  if (depth === 0) {
+    return (
+      <div className="mb-6 break-inside-avoid">
+        {link}
+        {nested}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {link}
+      {nested}
+    </>
+  );
+}
+
 export function Navbar() {
   const [shopOpen, setShopOpen] = useState(false);
-  const { data: categories, isLoading, isError } = useCategories();
+  const { data: tree, isLoading, isError } = useCatalogTree();
 
   return (
     <nav aria-label="Primary" className="border-b border-on-ink-border bg-ink">
@@ -68,37 +115,11 @@ export function Navbar() {
                     Categories unavailable.
                   </p>
                 )}
-                {categories && categories.length > 0 && (
+                {tree && tree.length > 0 && (
                   <div className="columns-2 gap-x-8 sm:columns-3 lg:columns-4">
-                    {categories.map((category) => {
-                      const categorySlug = slugify(category.name);
-                      return (
-                        <div key={category.id} className="mb-6 break-inside-avoid">
-                          <DropdownMenu.Item asChild>
-                            <Link
-                              href={`/category/${categorySlug}`}
-                              className="block text-sm font-bold uppercase tracking-wide text-text-primary transition-colors hover:text-primary"
-                            >
-                              {category.name}
-                            </Link>
-                          </DropdownMenu.Item>
-                          <ul className="mt-3 space-y-1.5 border-l-2 border-accent-tint-strong pl-3">
-                            {category.subcategories.map((subcategory) => (
-                              <li key={subcategory.id}>
-                                <DropdownMenu.Item asChild>
-                                  <Link
-                                    href={`/category/${categorySlug}/${slugify(subcategory.name)}`}
-                                    className="block text-sm text-text-muted transition-colors hover:text-primary"
-                                  >
-                                    {subcategory.name}
-                                  </Link>
-                                </DropdownMenu.Item>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      );
-                    })}
+                    {tree.map((node) => (
+                      <NavNode key={node.id} tree={tree} node={node} depth={0} />
+                    ))}
                   </div>
                 )}
               </div>
