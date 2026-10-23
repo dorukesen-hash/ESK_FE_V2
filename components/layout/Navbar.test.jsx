@@ -104,4 +104,34 @@ describe('Navbar', () => {
       ).toHaveAttribute('href', '/search');
     }
   );
+
+  it(
+    'renders a grandchild (3rd level) with the full canonical path, past the depth the old hard-coded menu supported',
+    { timeout: 15000, retry: 2 },
+    async () => {
+      useCatalogTree.mockReturnValue({
+        data: [
+          {
+            id: 12,
+            name: 'EDGE PROTECTION',
+            children: [
+              {
+                id: 24,
+                name: 'Corner Board',
+                children: [{ id: 99, name: 'White Corner Board', children: [] }],
+              },
+            ],
+          },
+        ],
+        isLoading: false,
+        isError: false,
+      });
+      render(<Navbar />);
+      await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
+
+      expect(
+        await screen.findByRole('menuitem', { name: 'White Corner Board' })
+      ).toHaveAttribute('href', '/category/edge-protection/corner-board/white-corner-board');
+    }
+  );
 });

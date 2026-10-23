@@ -64,7 +64,13 @@ Given the real catalog's actual names (checked against the live
 backfill: "Strapping & Load Securement", "Edge Protection", etc.),
 this is a rare, theoretical edge case. First-match-wins in tree
 traversal order if it ever happens; not engineered against further in
-this round.
+this round. One consequence worth naming: because the client-side
+canonical-path redirect (see Routing, below) only ever resolves the
+*last* URL segment, visiting the losing node's own full canonical URL
+in this scenario still resolves to the winner and then redirects
+there too — the loser is unreachable by any URL, not just by its bare
+slug. Still accepted as rare and theoretical; no further mitigation
+planned this round.
 
 ## Data layer
 
