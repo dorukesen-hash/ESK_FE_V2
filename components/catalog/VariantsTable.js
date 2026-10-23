@@ -20,7 +20,11 @@ function toTableRow(variant) {
     id: variant.id,
     title: variant.title,
     sku: variant.sku ?? null,
-    priceTiers: extractPriceTiers(variant).filter((tier) => tier.label !== 'Full pallet'),
+    // Unlike the old (deleted) useVariantSiblings, the pallet tier is NOT
+    // filtered out here - handleAdd below silently switches to this price
+    // once the chosen quantity reaches unitsPerPallet, so hiding it would
+    // let a row advertise one price and charge another.
+    priceTiers: extractPriceTiers(variant),
     palletPrice: variant.pallet_pricing != null ? Number(variant.pallet_pricing) : null,
     unitsPerPallet: variant.units_per_pallet != null ? Number(variant.units_per_pallet) : null,
     specValues,
@@ -104,7 +108,12 @@ function VariantRow({ row, href, isCurrent, visibleFields, gridTemplateColumns }
             className="h-9 w-full max-w-20 rounded-md border border-border px-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
-        <Button type="button" variant="outline" onClick={handleAdd}>
+        <Button
+          type="button"
+          variant="outline"
+          aria-label={`Add ${row.title} to cart`}
+          onClick={handleAdd}
+        >
           Add
         </Button>
       </div>
@@ -141,7 +150,13 @@ function VariantRow({ row, href, isCurrent, visibleFields, gridTemplateColumns }
             onChange={setQuantity}
             className="h-10 w-20 rounded-md border border-border px-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
           />
-          <Button type="button" variant="outline" className="flex-1" onClick={handleAdd}>
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1"
+            aria-label={`Add ${row.title} to cart`}
+            onClick={handleAdd}
+          >
             Add to Cart
           </Button>
         </div>

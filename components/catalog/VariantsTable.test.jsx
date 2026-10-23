@@ -76,6 +76,26 @@ describe('VariantsTable', () => {
     expect(otherDesktop.closest('div.border-b')).not.toHaveClass('bg-accent-tint');
   });
 
+  it('shows the full pallet price alongside the unit tiers, so the price shown matches what auto-pallet-detection actually charges', () => {
+    render(
+      <VariantsTable
+        productSlug="composite-strapping"
+        variants={[
+          rawVariant({
+            id: 327,
+            title: 'Half Inch',
+            one_four_units: '68.00',
+            pallet_pricing: '53.00',
+            units_per_pallet: 10,
+          }),
+        ]}
+      />
+    );
+
+    expect(screen.getAllByText('Full pallet').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('$53.00').length).toBeGreaterThan(0);
+  });
+
   it('shows all 3 quantity-tier prices per row', () => {
     render(
       <VariantsTable
@@ -119,7 +139,7 @@ describe('VariantsTable', () => {
     const [qty] = screen.getAllByLabelText('Quantity for Half Inch');
     await userEvent.clear(qty);
     await userEvent.type(qty, '3');
-    const [desktopAdd] = screen.getAllByRole('button', { name: 'Add' });
+    const [desktopAdd] = screen.getAllByRole('button', { name: 'Add Half Inch to cart' });
     await userEvent.click(desktopAdd);
 
     expect(useCartStore.getState().items).toEqual([
@@ -147,7 +167,7 @@ describe('VariantsTable', () => {
     const [qty] = screen.getAllByLabelText('Quantity for Half Inch');
     await userEvent.clear(qty);
     await userEvent.type(qty, '10');
-    const [desktopAdd] = screen.getAllByRole('button', { name: 'Add' });
+    const [desktopAdd] = screen.getAllByRole('button', { name: 'Add Half Inch to cart' });
     await userEvent.click(desktopAdd);
 
     expect(useCartStore.getState().items).toEqual([
@@ -188,5 +208,25 @@ describe('VariantsTable', () => {
 
     const [link] = screen.getAllByRole('link', { name: 'Half Inch' });
     expect(link).toHaveAttribute('href', '/product/composite-strapping/327');
+  });
+
+  it('gives each row Add button a distinct accessible name, even though every row shows the same visible "Add" text', () => {
+    render(
+      <VariantsTable
+        productSlug="composite-strapping"
+        variants={[
+          rawVariant({ id: 327, title: 'Half Inch' }),
+          rawVariant({ id: 328, title: 'Five Eighths' }),
+        ]}
+      />
+    );
+
+    expect(screen.getAllByRole('button', { name: 'Add Half Inch to cart' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: 'Add Five Eighths to cart' }).length).toBeGreaterThan(0);
+    // The same visible "Add" text appears on every row's desktop button, but
+    // because each has a distinct accessible name, querying by that shared
+    // visible text should never collapse two different rows' controls into
+    // one ambiguous match.
+    expect(screen.queryByRole('button', { name: 'Add' })).not.toBeInTheDocument();
   });
 });

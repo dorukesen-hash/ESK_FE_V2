@@ -62,7 +62,7 @@ describe('CatalogNodeView', () => {
       'href',
       '/product/composite-strapping/327'
     );
-    expect(screen.getAllByRole('button', { name: 'Add' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: 'Add A to cart' }).length).toBeGreaterThan(0);
   });
 
   it('redirects to the canonical path when the URL does not match it', () => {

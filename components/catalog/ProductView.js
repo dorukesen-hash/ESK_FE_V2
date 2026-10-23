@@ -212,7 +212,7 @@ export function ProductView({ variantId }) {
       </div>
     </main>
 
-    {node && node.variants.length > 0 && (
+    {node?.variants?.length > 0 && (
       <section className="mx-auto max-w-6xl px-6 py-16">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Options</p>
         <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary">
@@ -222,7 +222,7 @@ export function ProductView({ variantId }) {
           <VariantsTable
             variants={node.variants}
             currentVariantId={numericId}
-            productSlug={slugify(node.name)}
+            productSlug={slugify(node.name) || String(node.id)}
           />
         </div>
       </section>
