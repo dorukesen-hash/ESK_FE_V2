@@ -192,14 +192,26 @@ node with both is already representable. Visually this is
 deliberately close to identical to today; the only functional
 difference is it no longer assumes a fixed depth.
 
-`components/layout/Navbar.js`'s mega menu and
-`components/catalog/SearchFilters.js` both currently loop exactly 2
-levels deep (`category.subcategories.map(...)`, hard-coded). Both
-become a small recursive render (render a node's name + link, then
+`components/layout/Navbar.js`'s mega menu currently loops exactly 2
+levels deep (`category.subcategories.map(...)`, hard-coded). It
+becomes a small recursive render (render a node's name + link, then
 recurse into `node.children` one indentation/column level deeper).
 Visually this still looks like today's nested list for the real
 catalog's actual depth (3 levels); it simply stops being hard-capped
 at 2.
+
+`components/catalog/SearchFilters.js` does **not** go recursive this
+round. It swaps its data source from `useCategories` to
+`useCatalogTree`, but deliberately keeps today's 2-level filter UI
+shape (top-level nodes, then one level of children under an expanded
+one) and keeps emitting `categoryId`/`subcategoryId` query params
+exactly as it does today. Reason: `GET /search` is a separate ESK_API
+endpoint that was not touched by the catalog_node migration — it
+still only understands legacy `categoryId`/`subcategoryId`, nothing
+deeper. Making the filter UI itself recursive would let a user select
+a 3rd-level-or-deeper node that `/search` has no way to filter by.
+Revisiting `/search` to accept `nodeId` (and, with it, a fully
+recursive filter UI) is deferred to a later round.
 
 ## Testing
 
