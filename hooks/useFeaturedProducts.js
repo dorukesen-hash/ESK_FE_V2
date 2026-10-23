@@ -1,29 +1,21 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { CATALOG_QUERY_KEY, fetchCatalog } from '@/hooks/useCategories';
+import { CATALOG_TREE_QUERY_KEY, fetchCatalogTree } from '@/hooks/useCatalogTree';
 import { resolveImageUrl } from '@/lib/cdn';
 import { slugify } from '@/lib/slugify';
 
 // Homepage curation is admin-driven and open-ended - cap how many render
 // here so the section can't grow into an unbounded page-length list if
-// someone marks many variants featured. The grid itself has no bento-style
-// spans, so any count below this still lays out safely; this is purely
-// about keeping the homepage a reasonable length.
+// someone marks many variants featured.
 const FEATURED_LIMIT = 8;
 
-function imageForProduct(product) {
-  const url = product?.product_images?.[0]?.image?.url;
+function nodeImage(node) {
+  const url = node.images?.[0]?.image?.url;
   return url ? resolveImageUrl(url) : null;
 }
 
-function imageForSubcategory(subcategory) {
-  const url = subcategory.subcategory_images?.[0]?.image?.url;
-  return url ? resolveImageUrl(url) : null;
-}
-
-function toFeaturedProduct(variant, { subcategory, product }) {
-  const groupName = product?.name || subcategory.name;
+function toFeaturedProduct(variant, node) {
   return {
     id: variant.id,
     title: variant.title,
@@ -31,38 +23,33 @@ function toFeaturedProduct(variant, { subcategory, product }) {
     price: variant.one_four_units ? Number(variant.one_four_units) : null,
     unit: variant.unit,
     position: variant.featured_position ?? 0,
-    image: (product && imageForProduct(product)) || imageForSubcategory(subcategory),
-    href: `/product/${slugify(groupName)}/${variant.id}`,
+    image: nodeImage(node),
+    href: `/product/${slugify(node.name)}/${variant.id}`,
   };
 }
 
-function collectFeaturedProducts(categories) {
+function collectFeaturedProducts(tree) {
   const featured = [];
 
-  for (const category of categories) {
-    for (const subcategory of category.subcategories ?? []) {
-      for (const variant of subcategory.variants ?? []) {
+  function walk(nodes) {
+    for (const node of nodes) {
+      for (const variant of node.variants ?? []) {
         if (variant.featured) {
-          featured.push(toFeaturedProduct(variant, { subcategory }));
+          featured.push(toFeaturedProduct(variant, node));
         }
       }
-      for (const product of subcategory.products ?? []) {
-        for (const variant of product.variants ?? []) {
-          if (variant.featured) {
-            featured.push(toFeaturedProduct(variant, { subcategory, product }));
-          }
-        }
-      }
+      walk(node.children ?? []);
     }
   }
+  walk(tree);
 
   return featured.sort((a, b) => a.position - b.position).slice(0, FEATURED_LIMIT);
 }
 
 export function useFeaturedProducts() {
   return useQuery({
-    queryKey: CATALOG_QUERY_KEY,
-    queryFn: fetchCatalog,
+    queryKey: CATALOG_TREE_QUERY_KEY,
+    queryFn: fetchCatalogTree,
     select: collectFeaturedProducts,
     staleTime: 5 * 60 * 1000,
   });

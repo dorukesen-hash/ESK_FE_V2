@@ -29,23 +29,25 @@ describe('useFeaturedProducts', () => {
     process.env.NEXT_PUBLIC_CDN_URL = originalEnv;
   });
 
-  it('collects featured variants nested directly under a subcategory, ordered by position', async () => {
+  it('collects featured variants attached directly to a node, ordered by position', async () => {
     api.get.mockResolvedValue({
       data: [
         {
           id: 9,
           name: 'CORD STRAPPING',
-          subcategories: [
+          images: [],
+          variants: [],
+          children: [
             {
               id: 18,
               name: 'Composite Strapping',
-              subcategory_images: [{ image: { url: 'images/composite.jpg' } }],
+              images: [{ image: { url: 'images/composite.jpg' } }],
               variants: [
                 { id: 329, title: 'B', sku: 'CC60/2', featured: true, featured_position: 1, one_four_units: '60.00', unit: 'Coils' },
                 { id: 327, title: 'A', sku: 'CC40/2', featured: true, featured_position: 0, one_four_units: '68.00', unit: 'Coils' },
                 { id: 999, title: 'Not featured', featured: false },
               ],
-              products: [],
+              children: [],
             },
           ],
         },
@@ -55,6 +57,7 @@ describe('useFeaturedProducts', () => {
     const { result } = renderHook(() => useFeaturedProducts(), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
+    expect(api.get).toHaveBeenCalledWith('/catalog-node');
     expect(result.current.data).toEqual([
       {
         id: 327,
@@ -79,26 +82,29 @@ describe('useFeaturedProducts', () => {
     ]);
   });
 
-  it('collects featured variants nested under a product, preferring the product image', async () => {
+  it('collects featured variants nested several levels deep, using the image/slug of the node the variant is attached to', async () => {
     api.get.mockResolvedValue({
       data: [
         {
           id: 9,
           name: 'BOXES',
-          subcategories: [
+          images: [{ image: { url: 'images/sub.jpg' } }],
+          variants: [],
+          children: [
             {
               id: 31,
               name: 'Corrugated Boxes',
-              subcategory_images: [{ image: { url: 'images/sub.jpg' } }],
+              images: [{ image: { url: 'images/sub.jpg' } }],
               variants: [],
-              products: [
+              children: [
                 {
                   id: 4,
                   name: 'RSC Boxes',
-                  product_images: [{ image: { url: 'images/product.jpg' } }],
+                  images: [{ image: { url: 'images/product.jpg' } }],
                   variants: [
                     { id: 642, title: '4x4x4', sku: 'BX-4x4x4', featured: true, one_four_units: '1.20', unit: 'Each' },
                   ],
+                  children: [],
                 },
               ],
             },
@@ -130,9 +136,9 @@ describe('useFeaturedProducts', () => {
         {
           id: 9,
           name: 'BOXES',
-          subcategories: [
-            { id: 31, name: 'Corrugated Boxes', variants: [], products: [] },
-          ],
+          images: [],
+          variants: [],
+          children: [{ id: 31, name: 'Corrugated Boxes', images: [], variants: [], children: [] }],
         },
       ],
     });
@@ -158,9 +164,9 @@ describe('useFeaturedProducts', () => {
         {
           id: 9,
           name: 'BOXES',
-          subcategories: [
-            { id: 31, name: 'Corrugated Boxes', variants, products: [] },
-          ],
+          images: [],
+          variants: [],
+          children: [{ id: 31, name: 'Corrugated Boxes', images: [], variants, children: [] }],
         },
       ],
     });
