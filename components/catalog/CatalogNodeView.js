@@ -5,7 +5,12 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCatalogTree } from '@/hooks/useCatalogTree';
-import { findNodeBySlug, findAncestors, canonicalPath } from '@/lib/catalogNodeTree';
+import {
+  findNodeBySlug,
+  findAncestors,
+  canonicalPath,
+  countDescendantVariants,
+} from '@/lib/catalogNodeTree';
 import { resolveImageUrl } from '@/lib/cdn';
 import { slugify } from '@/lib/slugify';
 import { Breadcrumbs } from './Breadcrumbs';
@@ -98,29 +103,36 @@ export function CatalogNodeView({ path }) {
             {children.length} {children.length === 1 ? 'subcategory' : 'subcategories'}
           </p>
           <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-4">
-            {children.map((child) => (
-              <Link
-                key={child.id}
-                href={`/category/${canonicalPath(tree, child.id).join('/')}`}
-                className="group flex flex-col"
-              >
-                <div className="relative aspect-square overflow-hidden rounded-lg bg-button-secondary-bg">
-                  {nodeImage(child) && (
-                    <Image
-                      src={nodeImage(child)}
-                      alt=""
-                      fill
-                      sizes="(min-width: 640px) 25vw, 50vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  )}
-                </div>
-                <h3 className="mt-3 text-sm font-bold uppercase tracking-wide text-text-primary">
-                  {child.name}
-                </h3>
-                <span className="mt-1 block h-0.5 w-0 bg-accent transition-all duration-300 group-hover:w-8" />
-              </Link>
-            ))}
+            {children.map((child) => {
+              const image = nodeImage(child);
+              const productCount = countDescendantVariants(child);
+              return (
+                <Link
+                  key={child.id}
+                  href={`/category/${canonicalPath(tree, child.id).join('/')}`}
+                  className="group flex flex-col"
+                >
+                  <div className="relative aspect-square overflow-hidden rounded-lg bg-button-secondary-bg">
+                    {image && (
+                      <Image
+                        src={image}
+                        alt=""
+                        fill
+                        sizes="(min-width: 640px) 25vw, 50vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    )}
+                  </div>
+                  <h3 className="mt-3 text-sm font-bold uppercase tracking-wide text-text-primary">
+                    {child.name}
+                  </h3>
+                  <p className="text-xs text-text-muted">
+                    {productCount} {productCount === 1 ? 'product' : 'products'}
+                  </p>
+                  <span className="mt-1 block h-0.5 w-0 bg-accent transition-all duration-300 group-hover:w-8" />
+                </Link>
+              );
+            })}
           </div>
         </>
       )}

@@ -88,4 +88,48 @@ describe('CatalogNodeView', () => {
     render(<CatalogNodeView path={['composite-strapping']} />);
     expect(replace).toHaveBeenCalledWith('/category/cord-strapping/composite-strapping');
   });
+
+  it('shows a product count under each child tile, counting variants nested at any depth', () => {
+    const deepTree = [
+      {
+        id: 9,
+        name: 'BOXES',
+        images: [],
+        variants: [],
+        children: [
+          {
+            id: 31,
+            name: 'Corrugated Boxes',
+            images: [],
+            variants: [],
+            children: [
+              { id: 4, name: 'RSC Boxes', images: [], variants: [{ id: 1 }, { id: 2 }], children: [] },
+            ],
+          },
+        ],
+      },
+    ];
+    useCatalogTree.mockReturnValue({ data: deepTree, isLoading: false, isError: false });
+    render(<CatalogNodeView path={['boxes']} />);
+    expect(screen.getByText('2 products')).toBeInTheDocument();
+  });
+
+  it('renders both child tiles and a product grid when a node has children and variants at once', () => {
+    const mixedTree = [
+      {
+        id: 9,
+        name: 'CORD STRAPPING',
+        images: [],
+        variants: [{ id: 500, title: 'Loose variant', sku: 'LV1', one_four_units: '10.00', unit: 'Each' }],
+        children: [
+          { id: 18, name: 'Composite Strapping', images: [], variants: [], children: [] },
+        ],
+      },
+    ];
+    useCatalogTree.mockReturnValue({ data: mixedTree, isLoading: false, isError: false });
+    render(<CatalogNodeView path={['cord-strapping']} />);
+
+    expect(screen.getByRole('link', { name: /Composite Strapping/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^Loose variant/ })).toBeInTheDocument();
+  });
 });
