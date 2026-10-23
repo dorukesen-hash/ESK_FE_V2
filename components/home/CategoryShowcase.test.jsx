@@ -1,18 +1,18 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { useCategories } from '@/hooks/useCategories';
+import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { CategoryShowcase } from './CategoryShowcase';
 
-vi.mock('@/hooks/useCategories', () => ({
-  useCategories: vi.fn(),
+vi.mock('@/hooks/useCatalogTree', () => ({
+  useCatalogTree: vi.fn(),
 }));
 
-function makeCategories(count) {
+function makeNodes(count) {
   return Array.from({ length: count }, (_, i) => ({
     id: i + 1,
     name: `Category ${i + 1}`,
-    image: null,
-    subcategories: [],
+    images: [],
+    children: [],
   }));
 }
 
@@ -22,68 +22,52 @@ function tileFor(categoryName) {
 
 describe('CategoryShowcase', () => {
   it('renders an empty state when there are no categories', () => {
-    useCategories.mockReturnValue({ data: [], isLoading: false, isError: false });
+    useCatalogTree.mockReturnValue({ data: [], isLoading: false, isError: false });
     render(<CategoryShowcase />);
     expect(screen.getByText('No categories available yet.')).toBeInTheDocument();
   });
 
   it('never spans the feature tile when there are too few categories to fill its rows', () => {
-    useCategories.mockReturnValue({
-      data: makeCategories(4),
-      isLoading: false,
-      isError: false,
-    });
+    useCatalogTree.mockReturnValue({ data: makeNodes(4), isLoading: false, isError: false });
     render(<CategoryShowcase />);
     expect(tileFor('Category 1').className).not.toContain('row-span-2');
   });
 
   it('spans the feature tile once there are enough categories to fill its rows', () => {
-    useCategories.mockReturnValue({
-      data: makeCategories(5),
-      isLoading: false,
-      isError: false,
-    });
+    useCatalogTree.mockReturnValue({ data: makeNodes(5), isLoading: false, isError: false });
     render(<CategoryShowcase />);
     expect(tileFor('Category 1').className).toContain('row-span-2');
   });
 
   it('does not span the sixth tile wide unless two more categories follow it', () => {
-    useCategories.mockReturnValue({
-      data: makeCategories(7),
-      isLoading: false,
-      isError: false,
-    });
+    useCatalogTree.mockReturnValue({ data: makeNodes(7), isLoading: false, isError: false });
     render(<CategoryShowcase />);
     expect(tileFor('Category 6').className).not.toContain('col-span-2');
   });
 
   it('spans the sixth tile wide once the grid is fully packed', () => {
-    useCategories.mockReturnValue({
-      data: makeCategories(8),
-      isLoading: false,
-      isError: false,
-    });
+    useCatalogTree.mockReturnValue({ data: makeNodes(8), isLoading: false, isError: false });
     render(<CategoryShowcase />);
     expect(tileFor('Category 6').className).toContain('col-span-2');
   });
 
   it('renders skeleton placeholders while loading', () => {
-    useCategories.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+    useCatalogTree.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     const { container } = render(<CategoryShowcase />);
     expect(container.querySelectorAll('.animate-pulse')).toHaveLength(8);
   });
 
   it('shows an error message when the request fails', () => {
-    useCategories.mockReturnValue({ data: undefined, isLoading: false, isError: true });
+    useCatalogTree.mockReturnValue({ data: undefined, isLoading: false, isError: true });
     render(<CategoryShowcase />);
     expect(screen.getByText('Categories unavailable.')).toBeInTheDocument();
   });
 
-  it('renders a card per category linking to its slug', () => {
-    useCategories.mockReturnValue({
+  it('renders a card per category linking to its canonical path', () => {
+    useCatalogTree.mockReturnValue({
       data: [
-        { id: 12, name: 'EDGE PROTECTION', image: 'https://cdn.example.com/a.jpg', subcategories: [] },
-        { id: 7, name: 'Boxes', image: null, subcategories: [] },
+        { id: 12, name: 'EDGE PROTECTION', images: [{ image: { url: 'images/a.jpg' } }], children: [] },
+        { id: 7, name: 'Boxes', images: [], children: [] },
       ],
       isLoading: false,
       isError: false,
@@ -101,10 +85,10 @@ describe('CategoryShowcase', () => {
   });
 
   it('numbers each tile starting from 01', () => {
-    useCategories.mockReturnValue({
+    useCatalogTree.mockReturnValue({
       data: [
-        { id: 12, name: 'EDGE PROTECTION', image: null, subcategories: [] },
-        { id: 7, name: 'Boxes', image: null, subcategories: [] },
+        { id: 12, name: 'EDGE PROTECTION', images: [], children: [] },
+        { id: 7, name: 'Boxes', images: [], children: [] },
       ],
       isLoading: false,
       isError: false,
