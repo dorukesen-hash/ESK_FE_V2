@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useVariant } from '@/hooks/useVariant';
-import { useCategories } from '@/hooks/useCategories';
+import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { useVariantSiblings } from '@/hooks/useVariantSiblings';
 import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -11,8 +11,8 @@ import { ProductView } from './ProductView';
 vi.mock('@/hooks/useVariant', () => ({
   useVariant: vi.fn(),
 }));
-vi.mock('@/hooks/useCategories', () => ({
-  useCategories: vi.fn(),
+vi.mock('@/hooks/useCatalogTree', () => ({
+  useCatalogTree: vi.fn(),
 }));
 vi.mock('@/hooks/useVariantSiblings', () => ({
   useVariantSiblings: vi.fn(),
@@ -31,24 +31,25 @@ const baseVariant = {
   bullets: ['Strong'],
   specs: [{ label: 'Color', value: 'White' }],
   images: ['https://cdn.example.com/a.jpg'],
+  nodeId: 18,
   categoryId: 9,
   subcategoryId: 18,
   productId: null,
 };
 
+const tree = [
+  {
+    id: 9,
+    name: 'CORD STRAPPING',
+    children: [{ id: 18, name: 'Composite Strapping', children: [] }],
+  },
+];
+
 describe('ProductView', () => {
   beforeEach(() => {
     useCartStore.getState().clear();
     useUIStore.setState({ isCartDrawerOpen: false });
-    useCategories.mockReturnValue({
-      data: [
-        {
-          id: 9,
-          name: 'CORD STRAPPING',
-          subcategories: [{ id: 18, name: 'Composite Strapping' }],
-        },
-      ],
-    });
+    useCatalogTree.mockReturnValue({ data: tree });
     useVariantSiblings.mockReturnValue({ data: undefined, isLoading: false, isError: false });
   });
 
@@ -58,7 +59,7 @@ describe('ProductView', () => {
     expect(screen.getByText("We couldn't find that product.")).toBeInTheDocument();
   });
 
-  it('renders title, SKU, price tiers, and a breadcrumb with category/subcategory names', () => {
+  it('renders title, SKU, price tiers, and a breadcrumb built from the catalog tree', () => {
     useVariant.mockReturnValue({ data: baseVariant, isLoading: false, isError: false });
     render(<ProductView variantId="327" />);
 
@@ -127,5 +128,16 @@ describe('ProductView', () => {
 
     expect(useVariantSiblings).toHaveBeenCalledWith(327, { all: false });
     expect(screen.getByRole('heading', { name: 'Available Options' })).toBeInTheDocument();
+  });
+
+  it('renders without a breadcrumb category link when the variant has no nodeId', () => {
+    useVariant.mockReturnValue({
+      data: { ...baseVariant, nodeId: null },
+      isLoading: false,
+      isError: false,
+    });
+    render(<ProductView variantId="327" />);
+    expect(screen.getByRole('heading', { name: 'Composite Strapping' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'CORD STRAPPING' })).not.toBeInTheDocument();
   });
 });

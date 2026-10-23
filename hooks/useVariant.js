@@ -20,6 +20,7 @@ function toVariantDetail(variant) {
     bullets: extractBullets(variant),
     specs: extractSpecs(variant),
     images,
+    nodeId: variant.nodeId ?? null,
     categoryId: variant.categoryId ?? null,
     subcategoryId: variant.subcategoryId ?? null,
     productId: variant.productId ?? null,

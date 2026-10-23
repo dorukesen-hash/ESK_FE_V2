@@ -4,21 +4,21 @@ import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useVariant } from '@/hooks/useVariant';
-import { useCategories } from '@/hooks/useCategories';
+import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
-import { slugify } from '@/lib/slugify';
+import { findNode, findAncestors, canonicalPath } from '@/lib/catalogNodeTree';
 import { Breadcrumbs } from './Breadcrumbs';
 import { QuantityInput } from './QuantityInput';
 import { VariantsTable } from './VariantsTable';
 
-function useBreadcrumbNames(categoryId, subcategoryId) {
-  const { data: categories } = useCategories();
+function useBreadcrumbNodes(tree, nodeId) {
   return useMemo(() => {
-    const category = categories?.find((c) => c.id === categoryId);
-    const subcategory = category?.subcategories?.find((s) => s.id === subcategoryId);
-    return { category, subcategory };
-  }, [categories, categoryId, subcategoryId]);
+    if (!tree || nodeId == null) return { node: null, ancestors: [] };
+    const node = findNode(tree, nodeId);
+    if (!node) return { node: null, ancestors: [] };
+    return { node, ancestors: findAncestors(tree, nodeId) };
+  }, [tree, nodeId]);
 }
 
 function PriceTiers({ tiers }) {
@@ -42,10 +42,8 @@ function PriceTiers({ tiers }) {
 export function ProductView({ variantId }) {
   const numericId = Number(variantId);
   const { data: variant, isLoading, isError } = useVariant(numericId);
-  const { category, subcategory } = useBreadcrumbNames(
-    variant?.categoryId,
-    variant?.subcategoryId
-  );
+  const { data: tree } = useCatalogTree();
+  const { node, ancestors } = useBreadcrumbNodes(tree, variant?.nodeId);
   const [quantity, setQuantity] = useState(1);
   const [isPallet, setIsPallet] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
@@ -85,12 +83,14 @@ export function ProductView({ variantId }) {
     openCartDrawer();
   }
 
-  const categorySlug = category ? slugify(category.name) : null;
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
-    ...(category ? [{ label: category.name, href: `/category/${categorySlug}` }] : []),
-    ...(subcategory
-      ? [{ label: subcategory.name, href: `/category/${categorySlug}/${slugify(subcategory.name)}` }]
+    ...ancestors.map((ancestor) => ({
+      label: ancestor.name,
+      href: `/category/${canonicalPath(tree, ancestor.id).join('/')}`,
+    })),
+    ...(node
+      ? [{ label: node.name, href: `/category/${canonicalPath(tree, node.id).join('/')}` }]
       : []),
     { label: variant.title },
   ];
@@ -135,7 +135,7 @@ export function ProductView({ variantId }) {
 
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
-            {category?.name ?? 'Product'}
+            {ancestors[0]?.name ?? node?.name ?? 'Product'}
           </p>
           <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary md:text-3xl">
             {variant.title}
