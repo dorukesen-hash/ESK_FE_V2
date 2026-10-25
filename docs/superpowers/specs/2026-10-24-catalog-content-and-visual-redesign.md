@@ -65,14 +65,23 @@ across account/form/search pages this round doesn't otherwise touch;
 changing color tokens fixes the diagnosed defect precisely without
 re-opening those pages' layout.
 
-`app/globals.css`'s light-mode `--color-primary` moves from `#2a6aa2` to
-the design system's `#1E40AF` (with `--color-primary-hover` to `#1E3A8A`,
-its own "Foreground" shade — a sensible darker navy for the hover state).
-`--color-accent` (`#d97706`) already matches the design system's
-Accent/CTA color exactly — no change needed there. Dark mode is
-untouched; its own `--color-primary: #5ca0e2` is already a lighter blue
-chosen for dark-background contrast, which the light-mode palette change
-doesn't affect.
+**Revised after reviewing a mockup with the user:** the first draft of
+this spec moved `--color-primary` to the design system's generated
+`#1E40AF` navy. Two mockup rounds showed this read as "too dark" for
+this brand — partly because a first mockup draft auto-switched to a
+generated dark theme on OS preference (a mockup bug, not a real app
+behavior — the real app has no dark-mode toggle today, `.dark` exists in
+CSS but nothing ever applies it), and partly because the navy itself was
+simply heavier than this site's own established look. Correction: don't
+adopt the generated system's color past what's needed. `--color-primary`
+moves one small step, from `#2a6aa2` to `#1f5480` — which is not a new
+color at all, it's this app's own *existing* `--color-primary-hover`
+value, just promoted to the base color (so the hover state in turn needs
+a new, slightly deeper value, `#163f61`). `--color-accent` (`#d97706`)
+is unchanged — it already matched the generated system exactly and
+remains the one bold color on the page, as it is today. Dark mode is
+untouched either way; its own `--color-primary: #5ca0e2` already exists
+only for the (currently unused) `.dark` class path.
 
 **Content:** Expand `SPEC_FIELDS` from 9 scalar fields to the full set of
 genuinely populated, human-meaningful columns on `Variant` (checked
@@ -113,11 +122,31 @@ Two call sites, two shapes, same data:
    columns that actually vary across the current row set — now drawing
    from ~30 scalar candidates instead of 9, so a real comparison (e.g. 11
    "Composite Strapping" sizes) can surface break strength, system
-   strength, weight, etc. as real columns instead of nothing. Capped at
-   the first 5 discriminating fields (array order = priority order) so a
-   wide comparison doesn't produce an unreadable double-digit-column grid
-   — uline.com's own listing tables cap similarly (around 5-6 data
-   columns before price/qty/add).
+   strength, units per pallet, etc. as real columns instead of nothing.
+   Capped at the first 5 discriminating fields (array order = priority
+   order) so a wide comparison doesn't produce an unreadable double-digit-
+   column grid — uline.com's own listing tables cap similarly (around 5-6
+   data columns before price/qty/add).
+
+   **This mechanism is node-scoped and needs no per-category
+   configuration** — confirmed against a second, unrelated product line
+   while mocking this up: `Corrugated Boxes` (130 real variants) never
+   shows `break_strength`/`system_strength` (every row is `null` for
+   both, so the Set collapses to size 1 and the column is dropped), and
+   instead surfaces `bundle_bale_qty` (genuinely varies, e.g. "25/2500"
+   vs "25/600" — found during this check, already included in the
+   Packaging & Shipping group above).
+
+   **A real, accepted limitation, found the same way:** for
+   `Corrugated Boxes`, the one attribute that actually discriminates
+   SKUs — physical size — has no structured value (`size`,
+   `outside_w_l`, `usable_w_l` are `null` on every row); it exists only
+   inside the free-text `title` ("12 x 9 x 9 RSC..."). No column-
+   selection logic can produce a sortable Size column from data that was
+   never entered into a structured field. This is a data-entry gap in
+   ESK_API for this product line, not a frontend defect, and fixing it
+   (backfilling structured dimensions, or parsing the title) is out of
+   scope for this round — see Out of scope.
 
 **Visual density:** Apply the design system's density-8 ("dense/
 dashboard") spacing scale to `ProductView.js`, `CatalogNodeView.js`, and
@@ -163,3 +192,7 @@ these specific catalog surfaces. No other pages change.
   without being asked for directly.
 - `extradata` (JSONB, schema-less) — not parsed or surfaced; no stable
   shape to build a UI against.
+- Backfilling structured dimension fields (or title-parsing) for product
+  lines like `Corrugated Boxes` where size only exists in free text — a
+  data-entry/backend task, not a frontend one; flagged above, not fixed
+  here.
