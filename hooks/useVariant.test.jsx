@@ -74,11 +74,19 @@ describe('useVariant', () => {
       ],
       bullets: ['Strong'],
       specs: [
-        { label: 'Size', value: '1/2" x 3610\'' },
-        { label: 'Color', value: 'White' },
-        { label: 'Material', value: 'Polyester' },
-        { label: 'Sold as', value: 'Coils' },
-        { label: 'Break strength', value: '530 LB' },
+        {
+          group: 'Material & Performance',
+          specs: [
+            { label: 'Color', value: 'White' },
+            { label: 'Material', value: 'Polyester' },
+            { label: 'Sold as', value: 'Coils' },
+            { label: 'Break strength', value: '530 LB' },
+          ],
+        },
+        {
+          group: 'Dimensions',
+          specs: [{ label: 'Size', value: '1/2" x 3610\'' }],
+        },
       ],
       images: ['https://cdn.eskpackaging.com/images/a.jpg'],
       nodeId: 18,

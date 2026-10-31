@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { resolveImageUrl } from '@/lib/cdn';
-import { extractPriceTiers, extractBullets, extractSpecs } from '@/lib/variantFields';
+import { extractPriceTiers, extractBullets, extractGroupedSpecs } from '@/lib/variantFields';
 
 function toVariantDetail(variant) {
   const images = (variant.variant_images ?? [])
@@ -18,7 +18,7 @@ function toVariantDetail(variant) {
     unit: variant.unit ?? null,
     priceTiers: extractPriceTiers(variant),
     bullets: extractBullets(variant),
-    specs: extractSpecs(variant),
+    specs: extractGroupedSpecs(variant),
     images,
     nodeId: variant.nodeId ?? null,
     categoryId: variant.categoryId ?? null,

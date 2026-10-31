@@ -25,7 +25,7 @@ const baseVariant = {
     { label: 'Full pallet', price: 53 },
   ],
   bullets: ['Strong'],
-  specs: [{ label: 'Color', value: 'White' }],
+  specs: [{ group: 'Material & Performance', specs: [{ label: 'Color', value: 'White' }] }],
   images: ['https://cdn.example.com/a.jpg'],
   nodeId: 18,
   categoryId: 9,
@@ -95,6 +95,15 @@ describe('ProductView', () => {
     expect(useCartStore.getState().items).toEqual([
       { variantId: 327, quantity: 1, isPallet: true },
     ]);
+  });
+
+  it('renders each spec group with its heading and rows', () => {
+    useVariant.mockReturnValue({ data: baseVariant, isLoading: false, isError: false });
+    render(<ProductView variantId="327" />);
+
+    expect(screen.getByText('Material & Performance')).toBeInTheDocument();
+    expect(screen.getByText('Color')).toBeInTheDocument();
+    expect(screen.getByText('White')).toBeInTheDocument();
   });
 
   it('renders the variant options table sourced from the resolved node, with a link to each row', () => {

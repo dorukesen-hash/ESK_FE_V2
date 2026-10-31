@@ -197,16 +197,26 @@ export function ProductView({ variantId }) {
           )}
 
           {variant.specs.length > 0 && (
-            <table className="mt-8 w-full text-sm">
-              <tbody>
-                {variant.specs.map((spec) => (
-                  <tr key={spec.label} className="border-b border-border">
-                    <td className="py-2 text-text-muted">{spec.label}</td>
-                    <td className="py-2 text-right text-text-primary">{spec.value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="mt-8 space-y-6">
+              {variant.specs.map((group) => (
+                <div key={group.group}>
+                  <p className="text-xs font-bold uppercase tracking-wide text-primary">
+                    {group.group}
+                  </p>
+                  <div className="mt-2 grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+                    {group.specs.map((spec) => (
+                      <div
+                        key={spec.label}
+                        className="flex justify-between gap-3 border-b border-border py-2 text-sm"
+                      >
+                        <span className="text-text-muted">{spec.label}</span>
+                        <span className="text-right text-text-primary">{spec.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
