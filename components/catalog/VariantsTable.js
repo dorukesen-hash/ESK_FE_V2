@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
-import { SPEC_FIELDS, formatSpecValue, extractPriceTiers } from '@/lib/variantFields';
+import { SPEC_FIELDS, formatSpecValue, extractPriceTiers, pickDisplayFields } from '@/lib/variantFields';
 import { Button } from '@/components/ui/Button';
 import { QuantityInput } from './QuantityInput';
 
@@ -29,16 +29,6 @@ function toTableRow(variant) {
     unitsPerPallet: variant.units_per_pallet != null ? Number(variant.units_per_pallet) : null,
     specValues,
   };
-}
-
-// Only columns where the value actually differs somewhere in this set of
-// rows are worth a column - if every variant shares the same Material, a
-// Material column is 20+ identical cells of noise, not a comparison aid.
-function discriminatingFields(rows) {
-  return SPEC_FIELDS.filter((field) => {
-    const values = new Set(rows.map((row) => row.specValues[field.key] ?? null));
-    return values.size > 1;
-  });
 }
 
 function PriceTiers({ tiers }) {
@@ -165,13 +155,13 @@ function VariantRow({ row, href, isCurrent, visibleFields, gridTemplateColumns }
   );
 }
 
-export function VariantsTable({ variants, currentVariantId, productSlug }) {
+export function VariantsTable({ variants, currentVariantId, productSlug, displayFields }) {
   const [showAll, setShowAll] = useState(false);
 
   if (!variants || variants.length === 0) return null;
 
   const rows = variants.map(toTableRow);
-  const visibleFields = discriminatingFields(rows);
+  const visibleFields = pickDisplayFields(rows, displayFields);
   const hasMore = !showAll && rows.length > PREVIEW_LIMIT;
   const visibleRows = showAll ? rows : rows.slice(0, PREVIEW_LIMIT);
   const gridTemplateColumns = `minmax(0,1.6fr) ${visibleFields

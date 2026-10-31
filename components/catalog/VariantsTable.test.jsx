@@ -229,4 +229,45 @@ describe('VariantsTable', () => {
     // one ambiguous match.
     expect(screen.queryByRole('button', { name: 'Add' })).not.toBeInTheDocument();
   });
+
+  it('uses an admin-selected displayFields list as columns, even for a field that does not vary', () => {
+    render(
+      <VariantsTable
+        productSlug="composite-strapping"
+        displayFields={['break_strength']}
+        variants={[
+          rawVariant({ id: 327, title: 'Half Inch', break_strength: 750 }),
+          rawVariant({ id: 328, title: 'Five Eighths', break_strength: 750 }),
+        ]}
+      />
+    );
+    expect(screen.getAllByText('Break strength').length).toBeGreaterThan(0);
+  });
+
+  it('falls back to automatic column selection when displayFields is not provided', () => {
+    render(
+      <VariantsTable
+        productSlug="composite-strapping"
+        variants={[
+          rawVariant({ id: 327, title: 'Half Inch', style: 'Standard Duty' }),
+          rawVariant({ id: 328, title: 'Five Eighths', style: 'Heavy Duty' }),
+        ]}
+      />
+    );
+    expect(screen.getAllByText('Style').length).toBeGreaterThan(0);
+  });
+
+  it('shows zero extra columns when displayFields is an explicit empty array', () => {
+    render(
+      <VariantsTable
+        productSlug="composite-strapping"
+        displayFields={[]}
+        variants={[
+          rawVariant({ id: 327, title: 'Half Inch', style: 'Standard Duty' }),
+          rawVariant({ id: 328, title: 'Five Eighths', style: 'Heavy Duty' }),
+        ]}
+      />
+    );
+    expect(screen.queryByText('Style')).not.toBeInTheDocument();
+  });
 });
