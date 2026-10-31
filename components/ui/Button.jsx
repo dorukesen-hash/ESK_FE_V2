@@ -1,9 +1,9 @@
 'use client';
 
 const VARIANT_CLASSES = {
-  primary: 'bg-slate-900 text-white hover:bg-slate-700',
-  secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200',
-  outline: 'border border-slate-300 text-slate-900 hover:bg-slate-50',
+  primary: 'bg-accent text-accent-foreground hover:bg-accent-hover',
+  secondary: 'bg-button-secondary-bg text-text-primary hover:bg-accent-tint',
+  outline: 'border border-border text-text-primary hover:bg-accent-tint hover:text-primary',
 };
 
 export function Button({ children, variant = 'primary', className = '', ...props }) {
