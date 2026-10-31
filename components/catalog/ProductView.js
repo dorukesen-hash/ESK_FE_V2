@@ -53,8 +53,8 @@ export function ProductView({ variantId }) {
 
   if (isLoading) {
     return (
-      <main className="mx-auto max-w-6xl px-6 py-16">
-        <div className="grid gap-10 lg:grid-cols-2">
+      <main className="mx-auto max-w-6xl px-6 py-10">
+        <div className="grid gap-8 lg:grid-cols-2">
           <div className="aspect-square animate-pulse rounded-lg bg-button-secondary-bg" />
           <div className="space-y-4">
             <div className="h-8 w-3/4 animate-pulse rounded bg-button-secondary-bg" />
@@ -68,7 +68,7 @@ export function ProductView({ variantId }) {
 
   if (isError || !variant) {
     return (
-      <main className="mx-auto max-w-6xl px-6 py-16">
+      <main className="mx-auto max-w-6xl px-6 py-10">
         <p className="text-text-muted">We couldn&apos;t find that product.</p>
         <Link href="/search" className="mt-2 inline-block text-primary hover:text-primary-hover">
           Browse all products
@@ -98,10 +98,10 @@ export function ProductView({ variantId }) {
 
   return (
     <>
-    <main className="mx-auto max-w-6xl px-6 py-16">
+    <main className="mx-auto max-w-6xl px-6 py-10">
       <Breadcrumbs items={breadcrumbItems} />
 
-      <div className="mt-6 grid gap-10 lg:grid-cols-2">
+      <div className="mt-6 grid gap-8 lg:grid-cols-2">
         <div>
           <div className="relative aspect-square overflow-hidden rounded-lg bg-button-secondary-bg">
             {variant.images.length > 0 && (
@@ -223,7 +223,7 @@ export function ProductView({ variantId }) {
     </main>
 
     {node?.variants?.length > 0 && (
-      <section className="mx-auto max-w-6xl px-6 py-16">
+      <section className="mx-auto max-w-6xl px-6 py-10">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Options</p>
         <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary">
           Available Options
