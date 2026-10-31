@@ -144,6 +144,33 @@ describe('ProductView', () => {
     ).toBe(true);
   });
 
+  it("uses the resolved node's displayFields for the Available Options table when set", () => {
+    useVariant.mockReturnValue({ data: baseVariant, isLoading: false, isError: false });
+    useCatalogTree.mockReturnValue({
+      data: [
+        {
+          id: 9,
+          name: 'CORD STRAPPING',
+          children: [
+            {
+              id: 18,
+              name: 'Composite Strapping',
+              children: [],
+              displayFields: ['break_strength'],
+              variants: [
+                { id: 327, title: 'Composite Strapping', sku: 'CC40/2', break_strength: 750 },
+                { id: 329, title: 'Other size', sku: 'CC50/2', break_strength: 750 },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    render(<ProductView variantId="327" />);
+
+    expect(screen.getAllByText('Break strength').length).toBeGreaterThan(0);
+  });
+
   it('renders without a breadcrumb category link when the variant has no nodeId', () => {
     useVariant.mockReturnValue({
       data: { ...baseVariant, nodeId: null },

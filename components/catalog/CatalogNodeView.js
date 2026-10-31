@@ -131,7 +131,11 @@ export function CatalogNodeView({ path }) {
             {variants.length} {variants.length === 1 ? 'product' : 'products'}
           </p>
           <div className="mt-4">
-            <VariantsTable variants={variants} productSlug={slugify(node.name) || String(node.id)} />
+            <VariantsTable
+              variants={variants}
+              productSlug={slugify(node.name) || String(node.id)}
+              displayFields={node.displayFields}
+            />
           </div>
         </>
       )}

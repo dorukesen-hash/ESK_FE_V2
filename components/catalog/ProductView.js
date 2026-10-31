@@ -233,6 +233,7 @@ export function ProductView({ variantId }) {
             variants={node.variants}
             currentVariantId={numericId}
             productSlug={slugify(node.name) || String(node.id)}
+            displayFields={node.displayFields}
           />
         </div>
       </section>

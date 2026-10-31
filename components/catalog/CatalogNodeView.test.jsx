@@ -133,4 +133,32 @@ describe('CatalogNodeView', () => {
     expect(screen.getByRole('link', { name: /Composite Strapping/ })).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: /^Loose variant/ }).length).toBeGreaterThan(0);
   });
+
+  it("uses the resolved node's displayFields for the comparison table when set", () => {
+    const treeWithDisplayFields = [
+      {
+        id: 9,
+        name: 'CORD STRAPPING',
+        images: [],
+        variants: [],
+        children: [
+          {
+            id: 18,
+            name: 'Composite Strapping',
+            images: [],
+            children: [],
+            displayFields: ['break_strength'],
+            variants: [
+              { id: 327, title: 'A', sku: 'X', break_strength: 750 },
+              { id: 328, title: 'B', sku: 'Y', break_strength: 750 },
+            ],
+          },
+        ],
+      },
+    ];
+    useCatalogTree.mockReturnValue({ data: treeWithDisplayFields, isLoading: false, isError: false });
+    render(<CatalogNodeView path={['cord-strapping', 'composite-strapping']} />);
+
+    expect(screen.getAllByText('Break strength').length).toBeGreaterThan(0);
+  });
 });
