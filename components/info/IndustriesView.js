@@ -31,7 +31,7 @@ const INDUSTRIES = [
   },
 ];
 
-export function Industries() {
+export function IndustriesView() {
   return (
     <section id="industries" className="scroll-mt-20 bg-ink">
       <div className="mx-auto max-w-6xl px-6 py-16">

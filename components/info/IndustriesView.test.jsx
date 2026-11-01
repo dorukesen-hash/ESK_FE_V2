@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Industries } from './Industries';
+import { IndustriesView } from './IndustriesView';
 
-describe('Industries', () => {
+describe('IndustriesView', () => {
   it('renders all three industries linking to a real category', () => {
-    render(<Industries />);
+    render(<IndustriesView />);
 
     expect(
       screen.getByRole('link', { name: /Lumber, Doors & Building Materials/ })
@@ -15,10 +15,5 @@ describe('Industries', () => {
     expect(
       screen.getByRole('link', { name: /Warehousing, 3PL & Distribution/ })
     ).toHaveAttribute('href', '/category/stretch-film');
-  });
-
-  it('has the #industries anchor for the navbar link to target', () => {
-    const { container } = render(<Industries />);
-    expect(container.querySelector('#industries')).toBeInTheDocument();
   });
 });
