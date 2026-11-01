@@ -21,9 +21,9 @@ const GUIDANCE_ITEMS = [
   },
 ];
 
-export function ProductGuidance() {
+export function ProductGuidanceView() {
   return (
-    <section className="bg-surface">
+    <main className="bg-surface">
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-16 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center">
         <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
           <Image
@@ -39,9 +39,9 @@ export function ProductGuidance() {
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
             Product Guidance
           </p>
-          <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
             Get the right packaging for your application
-          </h2>
+          </h1>
           <p className="mt-4 max-w-xl text-text-muted">
             Tell us what you&apos;re packing, how it moves, and what
             performance you need. We&apos;ll help you compare materials,
@@ -76,6 +76,6 @@ export function ProductGuidance() {
           </Link>
         </div>
       </div>
-    </section>
+    </main>
   );
 }

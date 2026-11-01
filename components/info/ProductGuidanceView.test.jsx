@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { ProductGuidance } from './ProductGuidance';
+import { ProductGuidanceView } from './ProductGuidanceView';
 
-describe('ProductGuidance', () => {
-  it('renders the heading and all four guidance items', () => {
-    render(<ProductGuidance />);
+describe('ProductGuidanceView', () => {
+  it('renders the page heading and all four guidance items', () => {
+    render(<ProductGuidanceView />);
     expect(
       screen.getByRole('heading', {
+        level: 1,
         name: 'Get the right packaging for your application',
       })
     ).toBeInTheDocument();
@@ -17,7 +18,7 @@ describe('ProductGuidance', () => {
   });
 
   it('links the CTA to the quote page', () => {
-    render(<ProductGuidance />);
+    render(<ProductGuidanceView />);
     expect(
       screen.getByRole('link', { name: /Get Product Guidance/ })
     ).toHaveAttribute('href', '/quote');
