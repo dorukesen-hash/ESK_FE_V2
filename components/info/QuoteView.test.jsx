@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QuoteSection } from './QuoteSection';
+import { QuoteView } from './QuoteView';
 
-describe('QuoteSection', () => {
+describe('QuoteView', () => {
   it('shows validation errors for empty required fields', async () => {
-    render(<QuoteSection />);
+    render(<QuoteView />);
     await userEvent.click(screen.getByRole('button', { name: 'Send Quote Request' }));
 
     expect(await screen.findByText('Name is required')).toBeInTheDocument();
@@ -15,7 +15,7 @@ describe('QuoteSection', () => {
   });
 
   it('renders real, clickable contact details', () => {
-    render(<QuoteSection />);
+    render(<QuoteView />);
     expect(screen.getByRole('link', { name: /469-992-2447/ })).toHaveAttribute(
       'href',
       'tel:+14699922447'
@@ -29,7 +29,7 @@ describe('QuoteSection', () => {
   });
 
   it('opens a pre-filled mailto link on successful submit', async () => {
-    render(<QuoteSection />);
+    render(<QuoteView />);
 
     await userEvent.type(screen.getByLabelText('Name'), 'Jane Doe');
     await userEvent.type(screen.getByLabelText('Email'), 'jane@example.com');

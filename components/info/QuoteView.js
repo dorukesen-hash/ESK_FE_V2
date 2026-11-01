@@ -35,7 +35,7 @@ const schema = yup.object({
 const fieldClass =
   'mt-1 w-full rounded-md border border-border px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary';
 
-export function QuoteSection() {
+export function QuoteView() {
   const {
     register,
     handleSubmit,
