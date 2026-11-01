@@ -39,13 +39,16 @@ export function CatalogNodeView({ path }) {
   if (isLoading) {
     return (
       <main className="mx-auto max-w-6xl px-6 py-10">
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, index) => (
-            <div
-              key={index}
-              className="aspect-square animate-pulse rounded-lg bg-button-secondary-bg"
-            />
-          ))}
+        <div className="mt-6 grid gap-8 lg:grid-cols-[200px_1fr]">
+          <div className="hidden lg:block" />
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div
+                key={index}
+                className="aspect-square animate-pulse rounded-lg bg-button-secondary-bg"
+              />
+            ))}
+          </div>
         </div>
       </main>
     );
@@ -80,7 +83,7 @@ export function CatalogNodeView({ path }) {
     <main className="mx-auto max-w-6xl px-6 py-10">
       <Breadcrumbs items={breadcrumbItems} />
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-[240px_1fr]">
+      <div className="mt-6 grid gap-8 lg:grid-cols-[200px_1fr]">
         <div className="hidden lg:block">
           <CategorySidebar tree={tree} department={department} currentNodeId={node.id} />
         </div>

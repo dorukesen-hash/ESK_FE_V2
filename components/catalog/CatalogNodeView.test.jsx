@@ -193,4 +193,13 @@ describe('CatalogNodeView', () => {
     const sidebar = screen.getByRole('navigation', { name: 'Category' });
     expect(within(sidebar).getByText('Empty Node')).toHaveAttribute('aria-current', 'page');
   });
+
+  it('renders the loading skeleton inside the same two-column grid template as the resolved layout, to avoid a layout shift', () => {
+    useCatalogTree.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+    const { container } = render(<CatalogNodeView path={['anything']} />);
+
+    const grid = container.querySelector('.grid.gap-8');
+    expect(grid).toBeInTheDocument();
+    expect(grid.className).toContain('lg:grid-cols-[200px_1fr]');
+  });
 });
