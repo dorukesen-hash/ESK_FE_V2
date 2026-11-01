@@ -116,15 +116,15 @@ describe('Navbar', () => {
 
       await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
 
-      expect(await screen.findByRole('menuitem', { name: 'Corner Board' })).toHaveAttribute(
+      expect(await screen.findByRole('link', { name: 'Corner Board' })).toHaveAttribute(
         'href',
         '/category/edge-protection/corner-board'
       );
-      expect(screen.getByRole('menuitem', { name: 'Strapping Protectors' })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: 'Strapping Protectors' })).toHaveAttribute(
         'href',
         '/category/edge-protection/strapping-protectors'
       );
-      expect(screen.queryByRole('menuitem', { name: 'Hand Wrap' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Hand Wrap' })).not.toBeInTheDocument();
     }
   );
 
@@ -143,11 +143,11 @@ describe('Navbar', () => {
       render(<Navbar />);
 
       await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
-      expect(await screen.findByRole('menuitem', { name: 'Corner Board' })).toBeInTheDocument();
+      expect(await screen.findByRole('link', { name: 'Corner Board' })).toBeInTheDocument();
 
       await userEvent.click(screen.getByRole('button', { name: 'Stretch Wrap submenu' }));
-      expect(await screen.findByRole('menuitem', { name: 'Hand Wrap' })).toBeInTheDocument();
-      expect(screen.queryByRole('menuitem', { name: 'Corner Board' })).not.toBeInTheDocument();
+      expect(await screen.findByRole('link', { name: 'Hand Wrap' })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Corner Board' })).not.toBeInTheDocument();
     }
   );
 
@@ -176,7 +176,7 @@ describe('Navbar', () => {
       await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
 
       expect(
-        await screen.findByRole('menuitem', { name: 'White Corner Board' })
+        await screen.findByRole('link', { name: 'White Corner Board' })
       ).toHaveAttribute('href', '/category/edge-protection/corner-board/white-corner-board');
     }
   );

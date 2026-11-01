@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ChevronDown } from 'lucide-react';
 import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { canonicalPath } from '@/lib/catalogNodeTree';
@@ -40,20 +39,23 @@ function navHref(tree, nodeId) {
   return `/category/${canonicalPath(tree, nodeId).join('/')}`;
 }
 
+// Plain link now (no Radix DropdownMenu.Item wrapper) - this renders both
+// inside the per-category dropdown below (which is no longer a Radix
+// DropdownMenu.Content, just a plain positioned div) and recursively for
+// its own nested children, so it can't assume any particular menu
+// component context.
 function NavNode({ tree, node, depth }) {
   const link = (
-    <DropdownMenu.Item asChild>
-      <Link
-        href={navHref(tree, node.id)}
-        className={
-          depth === 0
-            ? 'block text-sm font-bold uppercase tracking-wide text-text-primary transition-colors hover:text-primary'
-            : 'block text-sm text-text-muted transition-colors hover:text-primary'
-        }
-      >
-        {node.name}
-      </Link>
-    </DropdownMenu.Item>
+    <Link
+      href={navHref(tree, node.id)}
+      className={
+        depth === 0
+          ? 'block text-sm font-bold uppercase tracking-wide text-text-primary transition-colors hover:text-primary'
+          : 'block text-sm text-text-muted transition-colors hover:text-primary'
+      }
+    >
+      {node.name}
+    </Link>
   );
 
   const nested = node.children?.length > 0 && (
@@ -88,45 +90,60 @@ function NavNode({ tree, node, depth }) {
 // children, a *separate* chevron button opens a compact dropdown listing
 // just that node's own children via the unchanged recursive NavNode. The
 // label and the chevron are deliberately two different elements - a single
-// element that is both a navigation link and a Radix dropdown trigger
-// would fire both behaviors on one click, which is the conflict this
-// split avoids.
+// element that is both a navigation link and a dropdown trigger would fire
+// both behaviors on one click, which is the conflict this split avoids.
+//
+// This is a plain controlled disclosure, not a Radix DropdownMenu: Radix's
+// DropdownMenu applies modal-dialog semantics (hiding/disabling sibling
+// content from the accessibility tree while open, regardless of the
+// `modal` prop's value) that actively conflict with having MANY
+// independent, always-reachable triggers side by side in one bar, where
+// clicking a different category's chevron must be able to switch which
+// one is open. A plain div shown/hidden by local state, closed on an
+// outside click, has no such conflict.
 function CategoryItem({ tree, node, openId, setOpenId }) {
   const isOpen = openId === node.id;
   const hasChildren = node.children?.length > 0;
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    function handleClickOutside(event) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setOpenId(null);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, setOpenId]);
 
   return (
-    <div className="flex shrink-0 items-center">
+    <div ref={containerRef} className="relative flex shrink-0 items-center">
       <Link href={navHref(tree, node.id)} className={itemClass}>
         {node.name}
       </Link>
       {hasChildren && (
-        <DropdownMenu.Root
-          open={isOpen}
-          onOpenChange={(next) => setOpenId(next ? node.id : null)}
-          modal={false}
-        >
-          <DropdownMenu.Trigger
+        <>
+          <button
+            type="button"
             aria-label={`${node.name} submenu`}
+            aria-expanded={isOpen}
+            onClick={() => setOpenId(isOpen ? null : node.id)}
             className={`${chevronButtonClass} ${isOpen ? 'bg-ink-elevated text-accent' : ''}`}
           >
             <ChevronDown
               aria-hidden="true"
               className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
             />
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Portal>
-            <DropdownMenu.Content
-              align="start"
-              sideOffset={0}
-              className="animate-dropdown-in z-20 min-w-[220px] rounded-b-lg border border-t-0 border-border bg-surface p-4 shadow-lg"
-            >
+          </button>
+          {isOpen && (
+            <div className="animate-dropdown-in absolute left-0 top-full z-20 min-w-[220px] rounded-b-lg border border-t-0 border-border bg-surface p-4 shadow-lg">
               {node.children.map((child) => (
                 <NavNode key={child.id} tree={tree} node={child} depth={0} />
               ))}
-            </DropdownMenu.Content>
-          </DropdownMenu.Portal>
-        </DropdownMenu.Root>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -135,7 +152,9 @@ function CategoryItem({ tree, node, openId, setOpenId }) {
 export function Navbar() {
   // Only one category's dropdown may be open at a time - tracked as the
   // single open node's id (or null) rather than per-node boolean state,
-  // so opening a second category's dropdown implicitly closes the first.
+  // so opening a second category's dropdown implicitly closes the first:
+  // setOpenId(nodeB.id) makes nodeA's CategoryItem re-render with
+  // isOpen=false and nodeB's with isOpen=true in the same render pass.
   const [openId, setOpenId] = useState(null);
   const { data: tree, isLoading, isError } = useCatalogTree();
 
