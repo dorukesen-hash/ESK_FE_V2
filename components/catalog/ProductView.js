@@ -102,7 +102,7 @@ export function ProductView({ variantId }) {
 
   return (
     <>
-    <main className="mx-auto max-w-6xl px-6 py-10">
+    <main className="mx-auto max-w-6xl px-6 py-10 pb-24 lg:pb-0">
       <Breadcrumbs items={breadcrumbItems} />
 
       <div className="mt-6 grid gap-8 lg:grid-cols-2">
@@ -138,53 +138,55 @@ export function ProductView({ variantId }) {
           )}
         </div>
 
-        <div data-testid="product-buy-box" className="lg:sticky lg:top-32 lg:self-start">
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
-            {ancestors[0]?.name ?? node?.name ?? 'Product'}
-          </p>
-          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary md:text-3xl">
-            {variant.title}
-          </h1>
-          {variant.sku && (
-            <p className="mt-1 text-sm text-text-muted">SKU: {variant.sku}</p>
-          )}
+        <div data-testid="product-info-column">
+          <div data-testid="product-buy-box" className="lg:sticky lg:top-32 lg:self-start">
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
+              {ancestors[0]?.name ?? node?.name ?? 'Product'}
+            </p>
+            <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary md:text-3xl">
+              {variant.title}
+            </h1>
+            {variant.sku && (
+              <p className="mt-1 text-sm text-text-muted">SKU: {variant.sku}</p>
+            )}
 
-          <PriceTiers tiers={variant.priceTiers} />
+            <PriceTiers tiers={variant.priceTiers} />
 
-          <div className="mt-6 flex flex-wrap items-end gap-4">
-            <div>
-              <label htmlFor="quantity" className="text-sm font-medium text-text-primary">
-                Quantity
-              </label>
-              <QuantityInput
-                id="quantity"
-                value={quantity}
-                onChange={setQuantity}
-                className="mt-1 w-24 rounded-md border border-border px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+            <div className="mt-6 flex flex-wrap items-end gap-4">
+              <div>
+                <label htmlFor="quantity" className="text-sm font-medium text-text-primary">
+                  Quantity
+                </label>
+                <QuantityInput
+                  id="quantity"
+                  value={quantity}
+                  onChange={setQuantity}
+                  className="mt-1 w-24 rounded-md border border-border px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              {hasPalletPrice && (
+                <label className="flex items-center gap-2 pb-2 text-sm text-text-primary">
+                  <input
+                    type="checkbox"
+                    checked={isPallet}
+                    onChange={(event) => setIsPallet(event.target.checked)}
+                    className="h-4 w-4 accent-accent"
+                  />
+                  Order by full pallet
+                </label>
+              )}
             </div>
 
-            {hasPalletPrice && (
-              <label className="flex items-center gap-2 pb-2 text-sm text-text-primary">
-                <input
-                  type="checkbox"
-                  checked={isPallet}
-                  onChange={(event) => setIsPallet(event.target.checked)}
-                  className="h-4 w-4 accent-accent"
-                />
-                Order by full pallet
-              </label>
-            )}
+            <button
+              ref={addToCartButtonRef}
+              type="button"
+              onClick={handleAddToCart}
+              className="mt-6 inline-flex h-12 items-center rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
+            >
+              Add to Cart
+            </button>
           </div>
-
-          <button
-            ref={addToCartButtonRef}
-            type="button"
-            onClick={handleAddToCart}
-            className="mt-6 inline-flex h-12 items-center rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
-          >
-            Add to Cart
-          </button>
 
           {variant.specs.length > 0 && (
             <div className="mt-8 space-y-6">
@@ -234,7 +236,7 @@ export function ProductView({ variantId }) {
     />
 
     {node?.variants?.length > 0 && (
-      <section className="mx-auto max-w-6xl px-6 py-10">
+      <section className="mx-auto max-w-6xl px-6 py-10 pb-24 lg:pb-0">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Options</p>
         <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary">
           Available Options

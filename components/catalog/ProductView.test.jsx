@@ -194,7 +194,9 @@ describe('ProductView', () => {
     const buyBox = screen.getByTestId('product-buy-box');
     expect(buyBox).toHaveClass('lg:sticky', 'lg:top-32', 'lg:self-start');
 
-    const grid = buyBox.parentElement;
+    const infoColumn = buyBox.parentElement;
+    const grid = infoColumn.parentElement;
+    expect(infoColumn.className).not.toMatch(/lg:sticky/);
     expect(grid.className).not.toMatch(/lg:sticky/);
   });
 

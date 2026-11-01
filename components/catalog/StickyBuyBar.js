@@ -24,7 +24,7 @@ export function StickyBuyBar({ targetRef, priceLabel, onAddToCart }) {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-surface px-4 py-3 shadow-card lg:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-surface px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-card lg:hidden">
       <div className="flex items-center justify-between gap-4">
         <span className="text-base font-semibold text-text-primary">{priceLabel}</span>
         <button
