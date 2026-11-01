@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useVariant } from '@/hooks/useVariant';
@@ -12,6 +12,7 @@ import { slugify } from '@/lib/slugify';
 import { Breadcrumbs } from './Breadcrumbs';
 import { QuantityInput } from './QuantityInput';
 import { VariantsTable } from './VariantsTable';
+import { StickyBuyBar } from './StickyBuyBar';
 
 function useBreadcrumbNodes(tree, nodeId) {
   return useMemo(() => {
@@ -48,6 +49,7 @@ export function ProductView({ variantId }) {
   const [quantity, setQuantity] = useState(1);
   const [isPallet, setIsPallet] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+  const addToCartButtonRef = useRef(null);
   const addItem = useCartStore((state) => state.addItem);
   const openCartDrawer = useUIStore((state) => state.openCartDrawer);
 
@@ -78,6 +80,8 @@ export function ProductView({ variantId }) {
   }
 
   const hasPalletPrice = variant.priceTiers.some((tier) => tier.label === 'Full pallet');
+  const firstTier = variant.priceTiers[0];
+  const stickyPriceLabel = firstTier ? `$${firstTier.price.toFixed(2)}` : null;
 
   function handleAddToCart() {
     addItem(numericId, quantity, isPallet);
@@ -134,7 +138,7 @@ export function ProductView({ variantId }) {
           )}
         </div>
 
-        <div>
+        <div data-testid="product-buy-box" className="lg:sticky lg:top-32 lg:self-start">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
             {ancestors[0]?.name ?? node?.name ?? 'Product'}
           </p>
@@ -174,27 +178,13 @@ export function ProductView({ variantId }) {
           </div>
 
           <button
+            ref={addToCartButtonRef}
             type="button"
             onClick={handleAddToCart}
             className="mt-6 inline-flex h-12 items-center rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
           >
             Add to Cart
           </button>
-
-          {variant.description && (
-            <p className="mt-8 text-sm text-text-muted">{variant.description}</p>
-          )}
-
-          {variant.bullets.length > 0 && (
-            <ul className="mt-4 space-y-2">
-              {variant.bullets.map((bullet) => (
-                <li key={bullet} className="flex gap-2 text-sm text-text-muted">
-                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-accent" />
-                  {bullet}
-                </li>
-              ))}
-            </ul>
-          )}
 
           {variant.specs.length > 0 && (
             <div className="mt-8 space-y-6">
@@ -218,9 +208,30 @@ export function ProductView({ variantId }) {
               ))}
             </div>
           )}
+
+          {variant.description && (
+            <p className="mt-8 text-sm text-text-muted">{variant.description}</p>
+          )}
+
+          {variant.bullets.length > 0 && (
+            <ul className="mt-4 space-y-2">
+              {variant.bullets.map((bullet) => (
+                <li key={bullet} className="flex gap-2 text-sm text-text-muted">
+                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-accent" />
+                  {bullet}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </main>
+
+    <StickyBuyBar
+      targetRef={addToCartButtonRef}
+      priceLabel={stickyPriceLabel}
+      onAddToCart={handleAddToCart}
+    />
 
     {node?.variants?.length > 0 && (
       <section className="mx-auto max-w-6xl px-6 py-10">

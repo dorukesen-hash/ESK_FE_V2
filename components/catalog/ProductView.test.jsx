@@ -6,12 +6,16 @@ import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
 import { ProductView } from './ProductView';
+import { StickyBuyBar } from './StickyBuyBar';
 
 vi.mock('@/hooks/useVariant', () => ({
   useVariant: vi.fn(),
 }));
 vi.mock('@/hooks/useCatalogTree', () => ({
   useCatalogTree: vi.fn(),
+}));
+vi.mock('./StickyBuyBar', () => ({
+  StickyBuyBar: vi.fn(() => null),
 }));
 
 const baseVariant = {
@@ -46,6 +50,7 @@ describe('ProductView', () => {
     useCartStore.getState().clear();
     useUIStore.setState({ isCartDrawerOpen: false });
     useCatalogTree.mockReturnValue({ data: tree });
+    StickyBuyBar.mockClear();
   });
 
   it('shows a not-found message when the variant does not resolve', () => {
@@ -180,5 +185,54 @@ describe('ProductView', () => {
     render(<ProductView variantId="327" />);
     expect(screen.getByRole('heading', { name: 'Composite Strapping' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'CORD STRAPPING' })).not.toBeInTheDocument();
+  });
+
+  it('keeps the buy box sticky on desktop without making the whole grid sticky', () => {
+    useVariant.mockReturnValue({ data: baseVariant, isLoading: false, isError: false });
+    render(<ProductView variantId="327" />);
+
+    const buyBox = screen.getByTestId('product-buy-box');
+    expect(buyBox).toHaveClass('lg:sticky', 'lg:top-32', 'lg:self-start');
+
+    const grid = buyBox.parentElement;
+    expect(grid.className).not.toMatch(/lg:sticky/);
+  });
+
+  it('renders the spec groups above the description and the bullets', () => {
+    useVariant.mockReturnValue({ data: baseVariant, isLoading: false, isError: false });
+    render(<ProductView variantId="327" />);
+
+    const specHeading = screen.getByText('Material & Performance');
+    const description = screen.getByText('A strap.');
+    const bullet = screen.getByText('Strong');
+
+    expect(
+      specHeading.compareDocumentPosition(description) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      specHeading.compareDocumentPosition(bullet) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
+  it('wires the mobile sticky bar to the first price tier, the real button, and the add-to-cart handler', () => {
+    useVariant.mockReturnValue({ data: baseVariant, isLoading: false, isError: false });
+    render(<ProductView variantId="327" />);
+
+    const props = StickyBuyBar.mock.calls[0][0];
+    expect(props.priceLabel).toBe('$68.00');
+    expect(typeof props.onAddToCart).toBe('function');
+    expect(props.targetRef.current).toBe(screen.getByRole('button', { name: 'Add to Cart' }));
+  });
+
+  it('passes a null priceLabel to the sticky bar instead of crashing when a variant has no price tiers', () => {
+    useVariant.mockReturnValue({
+      data: { ...baseVariant, priceTiers: [] },
+      isLoading: false,
+      isError: false,
+    });
+    expect(() => render(<ProductView variantId="327" />)).not.toThrow();
+
+    const props = StickyBuyBar.mock.calls[0][0];
+    expect(props.priceLabel).toBeNull();
   });
 });
