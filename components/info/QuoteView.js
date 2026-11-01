@@ -57,15 +57,15 @@ export function QuoteView() {
   }
 
   return (
-    <section id="quote" className="scroll-mt-20 bg-surface">
+    <main id="quote" className="scroll-mt-20 bg-surface">
       <div className="mx-auto grid max-w-6xl gap-10 border-t border-border px-6 py-16 lg:grid-cols-2">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
             Request a Quote
           </p>
-          <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
             Tell us what you need quoted
-          </h2>
+          </h1>
           <p className="mt-4 max-w-md text-text-muted">
             Our team will follow up with pricing and availability for pallet
             and container quantities.
@@ -190,6 +190,6 @@ export function QuoteView() {
           </p>
         </form>
       </div>
-    </section>
+    </main>
   );
 }

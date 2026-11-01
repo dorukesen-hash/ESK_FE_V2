@@ -4,6 +4,13 @@ import userEvent from '@testing-library/user-event';
 import { QuoteView } from './QuoteView';
 
 describe('QuoteView', () => {
+  it('renders its own page-level h1 heading', () => {
+    render(<QuoteView />);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Tell us what you need quoted'
+    );
+  });
+
   it('shows validation errors for empty required fields', async () => {
     render(<QuoteView />);
     await userEvent.click(screen.getByRole('button', { name: 'Send Quote Request' }));

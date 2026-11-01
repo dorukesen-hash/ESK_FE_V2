@@ -33,14 +33,14 @@ const INDUSTRIES = [
 
 export function IndustriesView() {
   return (
-    <section id="industries" className="scroll-mt-20 bg-ink">
+    <main id="industries" className="scroll-mt-20 bg-ink">
       <div className="mx-auto max-w-6xl px-6 py-16">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
           Industries We Serve
         </p>
-        <h2 className="mt-3 max-w-2xl text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+        <h1 className="mt-3 max-w-2xl text-3xl font-extrabold tracking-tight text-white md:text-4xl">
           Packaging solutions built for the way your industry ships
-        </h2>
+        </h1>
 
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3">
           {INDUSTRIES.map((industry) => (
@@ -67,6 +67,6 @@ export function IndustriesView() {
           ))}
         </div>
       </div>
-    </section>
+    </main>
   );
 }

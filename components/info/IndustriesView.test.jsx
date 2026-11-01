@@ -3,6 +3,13 @@ import { render, screen } from '@testing-library/react';
 import { IndustriesView } from './IndustriesView';
 
 describe('IndustriesView', () => {
+  it('renders its own page-level h1 heading', () => {
+    render(<IndustriesView />);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Packaging solutions built for the way your industry ships'
+    );
+  });
+
   it('renders all three industries linking to a real category', () => {
     render(<IndustriesView />);
 
