@@ -63,7 +63,7 @@ export function ProductGuidance() {
           </ol>
 
           <Link
-            href="/#quote"
+            href="/quote"
             className="group mt-8 inline-flex items-center gap-2 text-sm font-semibold text-text-primary"
           >
             <span className="border-b border-accent pb-0.5 transition-colors group-hover:text-primary">
