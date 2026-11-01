@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { CatalogNodeView } from './CatalogNodeView';
 
@@ -48,8 +48,9 @@ describe('CatalogNodeView', () => {
     render(<CatalogNodeView path={['cord-strapping']} />);
 
     expect(screen.getByRole('heading', { name: 'CORD STRAPPING' })).toBeInTheDocument();
+    const main = screen.getByTestId('category-main');
     expect(
-      screen.getByRole('link', { name: /Composite Strapping/ })
+      within(main).getByRole('link', { name: /Composite Strapping/ })
     ).toHaveAttribute('href', '/category/cord-strapping/composite-strapping');
   });
 
@@ -130,8 +131,9 @@ describe('CatalogNodeView', () => {
     useCatalogTree.mockReturnValue({ data: mixedTree, isLoading: false, isError: false });
     render(<CatalogNodeView path={['cord-strapping']} />);
 
-    expect(screen.getByRole('link', { name: /Composite Strapping/ })).toBeInTheDocument();
-    expect(screen.getAllByRole('link', { name: /^Loose variant/ }).length).toBeGreaterThan(0);
+    const main = screen.getByTestId('category-main');
+    expect(within(main).getByRole('link', { name: /Composite Strapping/ })).toBeInTheDocument();
+    expect(within(main).getAllByRole('link', { name: /^Loose variant/ }).length).toBeGreaterThan(0);
   });
 
   it("uses the resolved node's displayFields for the comparison table when set", () => {
@@ -160,5 +162,35 @@ describe('CatalogNodeView', () => {
     render(<CatalogNodeView path={['cord-strapping', 'composite-strapping']} />);
 
     expect(screen.getAllByText('Break strength').length).toBeGreaterThan(0);
+  });
+
+  it('renders the sidebar scoped to the current department, with the current node highlighted', () => {
+    useCatalogTree.mockReturnValue({ data: tree, isLoading: false, isError: false });
+    render(<CatalogNodeView path={['cord-strapping', 'composite-strapping']} />);
+
+    const sidebar = screen.getByRole('navigation', { name: 'Category' });
+    expect(within(sidebar).getByText('Composite Strapping')).toHaveAttribute('aria-current', 'page');
+    // The department root (CORD STRAPPING) is Composite Strapping's parent,
+    // not the current node itself here, so it renders as a link.
+    expect(within(sidebar).getByRole('link', { name: 'CORD STRAPPING' })).toBeInTheDocument();
+  });
+
+  it('renders a correct, non-empty sidebar when visiting a top-level department directly (no ancestors)', () => {
+    useCatalogTree.mockReturnValue({ data: tree, isLoading: false, isError: false });
+    render(<CatalogNodeView path={['cord-strapping']} />);
+
+    const sidebar = screen.getByRole('navigation', { name: 'Category' });
+    expect(within(sidebar).getByText('CORD STRAPPING')).toHaveAttribute('aria-current', 'page');
+    expect(within(sidebar).getByRole('link', { name: /Composite Strapping/ })).toBeInTheDocument();
+  });
+
+  it('does not throw and still renders a sidebar for a leaf node with no children or variants', () => {
+    const emptyTree = [{ id: 1, name: 'Empty Node', images: [], variants: [], children: [] }];
+    useCatalogTree.mockReturnValue({ data: emptyTree, isLoading: false, isError: false });
+    render(<CatalogNodeView path={['empty-node']} />);
+
+    expect(screen.getByText('Nothing here yet.')).toBeInTheDocument();
+    const sidebar = screen.getByRole('navigation', { name: 'Category' });
+    expect(within(sidebar).getByText('Empty Node')).toHaveAttribute('aria-current', 'page');
   });
 });

@@ -15,6 +15,7 @@ import { resolveImageUrl } from '@/lib/cdn';
 import { slugify } from '@/lib/slugify';
 import { Breadcrumbs } from './Breadcrumbs';
 import { VariantsTable } from './VariantsTable';
+import { CategorySidebar } from './CategorySidebar';
 
 function nodeImage(node) {
   const url = node.images?.[0]?.image?.url;
@@ -62,6 +63,7 @@ export function CatalogNodeView({ path }) {
   }
 
   const ancestors = findAncestors(tree, node.id);
+  const department = ancestors.length > 0 ? ancestors[0] : node;
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     ...ancestors.map((ancestor) => ({
@@ -78,71 +80,79 @@ export function CatalogNodeView({ path }) {
     <main className="mx-auto max-w-6xl px-6 py-10">
       <Breadcrumbs items={breadcrumbItems} />
 
-      <p className="mt-4 text-xs font-bold uppercase tracking-[0.3em] text-accent">
-        {ancestors[0]?.name ?? 'Category'}
-      </p>
-      <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
-        {node.name}
-      </h1>
+      <div className="mt-6 grid gap-8 lg:grid-cols-[240px_1fr]">
+        <div className="hidden lg:block">
+          <CategorySidebar tree={tree} department={department} currentNodeId={node.id} />
+        </div>
 
-      {children.length > 0 && (
-        <>
-          <p className="mt-2 text-text-muted">
-            {children.length} {children.length === 1 ? 'subcategory' : 'subcategories'}
+        <div data-testid="category-main">
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
+            {ancestors[0]?.name ?? 'Category'}
           </p>
-          <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-4">
-            {children.map((child) => {
-              const image = nodeImage(child);
-              const productCount = countDescendantVariants(child);
-              return (
-                <Link
-                  key={child.id}
-                  href={`/category/${canonicalPath(tree, child.id).join('/')}`}
-                  className="group flex flex-col"
-                >
-                  <div className="relative aspect-square overflow-hidden rounded-lg bg-button-secondary-bg">
-                    {image && (
-                      <Image
-                        src={image}
-                        alt=""
-                        fill
-                        sizes="(min-width: 640px) 25vw, 50vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    )}
-                  </div>
-                  <h3 className="mt-3 text-sm font-bold uppercase tracking-wide text-text-primary">
-                    {child.name}
-                  </h3>
-                  <p className="text-xs text-text-muted">
-                    {productCount} {productCount === 1 ? 'product' : 'products'}
-                  </p>
-                  <span className="mt-1 block h-0.5 w-0 bg-accent transition-all duration-300 group-hover:w-8" />
-                </Link>
-              );
-            })}
-          </div>
-        </>
-      )}
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
+            {node.name}
+          </h1>
 
-      {variants.length > 0 && (
-        <>
-          <p className="mt-10 text-text-muted">
-            {variants.length} {variants.length === 1 ? 'product' : 'products'}
-          </p>
-          <div className="mt-4">
-            <VariantsTable
-              variants={variants}
-              productSlug={slugify(node.name) || String(node.id)}
-              displayFields={node.displayFields}
-            />
-          </div>
-        </>
-      )}
+          {children.length > 0 && (
+            <>
+              <p className="mt-2 text-text-muted">
+                {children.length} {children.length === 1 ? 'subcategory' : 'subcategories'}
+              </p>
+              <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-4">
+                {children.map((child) => {
+                  const image = nodeImage(child);
+                  const productCount = countDescendantVariants(child);
+                  return (
+                    <Link
+                      key={child.id}
+                      href={`/category/${canonicalPath(tree, child.id).join('/')}`}
+                      className="group flex flex-col"
+                    >
+                      <div className="relative aspect-square overflow-hidden rounded-lg bg-button-secondary-bg">
+                        {image && (
+                          <Image
+                            src={image}
+                            alt=""
+                            fill
+                            sizes="(min-width: 640px) 25vw, 50vw"
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        )}
+                      </div>
+                      <h3 className="mt-3 text-sm font-bold uppercase tracking-wide text-text-primary">
+                        {child.name}
+                      </h3>
+                      <p className="text-xs text-text-muted">
+                        {productCount} {productCount === 1 ? 'product' : 'products'}
+                      </p>
+                      <span className="mt-1 block h-0.5 w-0 bg-accent transition-all duration-300 group-hover:w-8" />
+                    </Link>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
-      {children.length === 0 && variants.length === 0 && (
-        <p className="mt-10 text-text-muted">Nothing here yet.</p>
-      )}
+          {variants.length > 0 && (
+            <>
+              <p className="mt-10 text-text-muted">
+                {variants.length} {variants.length === 1 ? 'product' : 'products'}
+              </p>
+              <div className="mt-4">
+                <VariantsTable
+                  variants={variants}
+                  productSlug={slugify(node.name) || String(node.id)}
+                  displayFields={node.displayFields}
+                />
+              </div>
+            </>
+          )}
+
+          {children.length === 0 && variants.length === 0 && (
+            <p className="mt-10 text-text-muted">Nothing here yet.</p>
+          )}
+        </div>
+      </div>
     </main>
   );
 }
