@@ -106,12 +106,15 @@ function CategoryItem({ tree, node, openId, setOpenId }) {
   const isOpen = openId === node.id;
   const hasChildren = node.children?.length > 0;
   const containerRef = useRef(null);
+  const dropdownRef = useRef(null);
   const [position, setPosition] = useState(null);
 
   useEffect(() => {
     if (!isOpen) return undefined;
     function handleClickOutside(event) {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
+      const insideTrigger = containerRef.current && containerRef.current.contains(event.target);
+      const insideDropdown = dropdownRef.current && dropdownRef.current.contains(event.target);
+      if (!insideTrigger && !insideDropdown) {
         setOpenId(null);
       }
     }
@@ -153,6 +156,7 @@ function CategoryItem({ tree, node, openId, setOpenId }) {
             position &&
             createPortal(
               <div
+                ref={dropdownRef}
                 style={{ position: 'fixed', top: position.top, left: position.left }}
                 className="animate-dropdown-in z-20 min-w-[220px] rounded-b-lg border border-t-0 border-border bg-surface p-4 shadow-lg"
               >

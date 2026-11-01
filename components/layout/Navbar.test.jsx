@@ -152,6 +152,35 @@ describe('Navbar', () => {
   );
 
   it(
+    'does not close the dropdown when clicking a link inside it (click-through navigation)',
+    { timeout: 15000, retry: 2 },
+    async () => {
+      useCatalogTree.mockReturnValue({
+        data: [
+          {
+            id: 12,
+            name: 'EDGE PROTECTION',
+            children: [{ id: 24, name: 'Corner Board', children: [] }],
+          },
+        ],
+        isLoading: false,
+        isError: false,
+      });
+      render(<Navbar />);
+
+      await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
+      const cornerBoardLink = await screen.findByRole('link', { name: 'Corner Board' });
+
+      // mousedown fires before click; the click-outside handler must not
+      // treat this as outside the (portaled) dropdown content and close it
+      // before the subsequent click can reach the link.
+      await userEvent.click(cornerBoardLink);
+
+      expect(screen.getByRole('link', { name: 'Corner Board' })).toBeInTheDocument();
+    }
+  );
+
+  it(
     'renders a grandchild (3rd level) with the full canonical path inside the category dropdown',
     { timeout: 15000, retry: 2 },
     async () => {
