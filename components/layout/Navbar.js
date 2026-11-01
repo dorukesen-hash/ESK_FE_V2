@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 import { useCatalogTree } from '@/hooks/useCatalogTree';
@@ -105,6 +106,7 @@ function CategoryItem({ tree, node, openId, setOpenId }) {
   const isOpen = openId === node.id;
   const hasChildren = node.children?.length > 0;
   const containerRef = useRef(null);
+  const [position, setPosition] = useState(null);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -116,6 +118,17 @@ function CategoryItem({ tree, node, openId, setOpenId }) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, setOpenId]);
+
+  // The dropdown content below is portaled to document.body (see render),
+  // escaping the nav's own scroll row (which clips on both axes - see the
+  // comment on the <nav> row below). A portal has no CSS positioning
+  // context of its own, so its position must be computed from the
+  // trigger's real on-screen location each time it opens.
+  useEffect(() => {
+    if (!isOpen || !containerRef.current) return undefined;
+    const rect = containerRef.current.getBoundingClientRect();
+    setPosition({ top: rect.bottom, left: rect.left });
+  }, [isOpen]);
 
   return (
     <div ref={containerRef} className="relative flex shrink-0 items-center">
@@ -136,13 +149,19 @@ function CategoryItem({ tree, node, openId, setOpenId }) {
               className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
             />
           </button>
-          {isOpen && (
-            <div className="animate-dropdown-in absolute left-0 top-full z-20 min-w-[220px] rounded-b-lg border border-t-0 border-border bg-surface p-4 shadow-lg">
-              {node.children.map((child) => (
-                <NavNode key={child.id} tree={tree} node={child} depth={0} />
-              ))}
-            </div>
-          )}
+          {isOpen &&
+            position &&
+            createPortal(
+              <div
+                style={{ position: 'fixed', top: position.top, left: position.left }}
+                className="animate-dropdown-in z-20 min-w-[220px] rounded-b-lg border border-t-0 border-border bg-surface p-4 shadow-lg"
+              >
+                {node.children.map((child) => (
+                  <NavNode key={child.id} tree={tree} node={child} depth={0} />
+                ))}
+              </div>,
+              document.body
+            )}
         </>
       )}
     </div>
