@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { Navbar } from './Navbar';
@@ -152,7 +152,7 @@ describe('Navbar', () => {
   );
 
   it(
-    'does not close the dropdown when clicking a link inside it (click-through navigation)',
+    "a mousedown inside the open dropdown's own content does not close it",
     { timeout: 15000, retry: 2 },
     async () => {
       useCatalogTree.mockReturnValue({
@@ -171,14 +171,81 @@ describe('Navbar', () => {
       await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
       const cornerBoardLink = await screen.findByRole('link', { name: 'Corner Board' });
 
-      // mousedown fires before click; the click-outside handler must not
-      // treat this as outside the (portaled) dropdown content and close it
-      // before the subsequent click can reach the link.
-      await userEvent.click(cornerBoardLink);
+      fireEvent.mouseDown(cornerBoardLink);
 
       expect(screen.getByRole('link', { name: 'Corner Board' })).toBeInTheDocument();
     }
   );
+
+  it(
+    'closes the dropdown once a link inside it is actually clicked',
+    { timeout: 15000, retry: 2 },
+    async () => {
+      useCatalogTree.mockReturnValue({
+        data: [
+          {
+            id: 12,
+            name: 'EDGE PROTECTION',
+            children: [{ id: 24, name: 'Corner Board', children: [] }],
+          },
+        ],
+        isLoading: false,
+        isError: false,
+      });
+      render(<Navbar />);
+
+      await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
+      const cornerBoardLink = await screen.findByRole('link', { name: 'Corner Board' });
+
+      fireEvent.click(cornerBoardLink);
+
+      expect(screen.queryByRole('link', { name: 'Corner Board' })).not.toBeInTheDocument();
+    }
+  );
+
+  it('moves focus into the dropdown once it opens', async () => {
+    useCatalogTree.mockReturnValue({
+      data: [
+        {
+          id: 12,
+          name: 'EDGE PROTECTION',
+          children: [{ id: 24, name: 'Corner Board', children: [] }],
+        },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+    render(<Navbar />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
+    const cornerBoardLink = await screen.findByRole('link', { name: 'Corner Board' });
+
+    expect(cornerBoardLink).toHaveFocus();
+  });
+
+  it('closes the dropdown and returns focus to its trigger on Escape', async () => {
+    useCatalogTree.mockReturnValue({
+      data: [
+        {
+          id: 12,
+          name: 'EDGE PROTECTION',
+          children: [{ id: 24, name: 'Corner Board', children: [] }],
+        },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+    render(<Navbar />);
+
+    const trigger = screen.getByRole('button', { name: 'EDGE PROTECTION submenu' });
+    await userEvent.click(trigger);
+    await screen.findByRole('link', { name: 'Corner Board' });
+
+    await userEvent.keyboard('{Escape}');
+
+    expect(screen.queryByRole('link', { name: 'Corner Board' })).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
 
   it(
     'renders a grandchild (3rd level) with the full canonical path inside the category dropdown',

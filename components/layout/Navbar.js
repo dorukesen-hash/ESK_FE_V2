@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
@@ -101,16 +101,22 @@ function NavNode({ tree, node, depth }) {
 // independent, always-reachable triggers side by side in one bar, where
 // clicking a different category's chevron must be able to switch which
 // one is open. A plain div shown/hidden by local state, closed on an
-// outside click, has no such conflict.
+// outside click, has no such conflict - but it also means every piece of
+// behavior Radix supplied for free (close-on-select, viewport collision
+// handling, reposition-on-scroll, Escape, focus management) has to be
+// built back in deliberately, which is what the rest of this component does.
 function CategoryItem({ tree, node, openId, setOpenId }) {
   const isOpen = openId === node.id;
   const hasChildren = node.children?.length > 0;
   const containerRef = useRef(null);
   const dropdownRef = useRef(null);
+  const triggerRef = useRef(null);
   const [position, setPosition] = useState(null);
+  const dropdownId = `category-dropdown-${node.id}`;
 
   useEffect(() => {
     if (!isOpen) return undefined;
+
     function handleClickOutside(event) {
       const insideTrigger = containerRef.current && containerRef.current.contains(event.target);
       const insideDropdown = dropdownRef.current && dropdownRef.current.contains(event.target);
@@ -118,20 +124,69 @@ function CategoryItem({ tree, node, openId, setOpenId }) {
         setOpenId(null);
       }
     }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setOpenId(null);
+        triggerRef.current?.focus();
+      }
+    }
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, setOpenId]);
 
   // The dropdown content below is portaled to document.body (see render),
   // escaping the nav's own scroll row (which clips on both axes - see the
   // comment on the <nav> row below). A portal has no CSS positioning
   // context of its own, so its position must be computed from the
-  // trigger's real on-screen location each time it opens.
-  useEffect(() => {
+  // trigger's real on-screen location, clamped to stay inside the
+  // viewport, and recomputed whenever the page scrolls or resizes while
+  // open (the nav row itself scrolls horizontally, which would otherwise
+  // strand the panel at its old coordinates). useLayoutEffect (not
+  // useEffect) so this runs before the browser paints - on reopen, a
+  // plain useEffect would paint one frame at whatever `position` was left
+  // over from the previous open before correcting itself.
+  useLayoutEffect(() => {
     if (!isOpen || !containerRef.current) return undefined;
-    const rect = containerRef.current.getBoundingClientRect();
-    setPosition({ top: rect.bottom, left: rect.left });
+
+    const DROPDOWN_WIDTH = 220;
+
+    function updatePosition() {
+      const rect = containerRef.current.getBoundingClientRect();
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - DROPDOWN_WIDTH - 8));
+      setPosition({ top: rect.bottom, left });
+    }
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
   }, [isOpen]);
+
+  // Once the portaled content actually mounts - which requires BOTH
+  // isOpen and position to be true; the render where isOpen first becomes
+  // true still has position===null (the layout effect above hasn't run
+  // yet), so the portal isn't in the DOM and dropdownRef.current is still
+  // null on that render - move focus into it, so Tab from the chevron
+  // continues into the dropdown's own links instead of skipping to the
+  // next bar item (the portal is appended at the end of document.body,
+  // so it's out of the natural DOM tab order otherwise). Depending on
+  // BOTH isOpen and position (not just isOpen) is what makes this run on
+  // the render where dropdownRef is actually populated - depending on
+  // isOpen alone would fire too early and silently no-op.
+  useEffect(() => {
+    if (isOpen && position && dropdownRef.current) {
+      dropdownRef.current.querySelector('a')?.focus();
+    }
+  }, [isOpen, position]);
 
   return (
     <div ref={containerRef} className="relative flex shrink-0 items-center">
@@ -141,9 +196,12 @@ function CategoryItem({ tree, node, openId, setOpenId }) {
       {hasChildren && (
         <>
           <button
+            ref={triggerRef}
             type="button"
             aria-label={`${node.name} submenu`}
             aria-expanded={isOpen}
+            aria-haspopup="true"
+            aria-controls={dropdownId}
             onClick={() => setOpenId(isOpen ? null : node.id)}
             className={`${chevronButtonClass} ${isOpen ? 'bg-ink-elevated text-accent' : ''}`}
           >
@@ -156,9 +214,11 @@ function CategoryItem({ tree, node, openId, setOpenId }) {
             position &&
             createPortal(
               <div
+                id={dropdownId}
                 ref={dropdownRef}
+                onClick={() => setOpenId(null)}
                 style={{ position: 'fixed', top: position.top, left: position.left }}
-                className="animate-dropdown-in z-20 min-w-[220px] rounded-b-lg border border-t-0 border-border bg-surface p-4 shadow-lg"
+                className="animate-dropdown-in z-20 max-h-[70vh] min-w-[220px] overflow-y-auto rounded-b-lg border border-t-0 border-border bg-surface p-4 shadow-lg"
               >
                 {node.children.map((child) => (
                   <NavNode key={child.id} tree={tree} node={child} depth={0} />
