@@ -10,7 +10,7 @@ vi.mock('@/hooks/useCatalogTree', () => ({
 
 describe('Navbar', () => {
   it('renders About Us as a real link', () => {
-    useCatalogTree.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+    useCatalogTree.mockReturnValue({ data: [], isLoading: false, isError: false });
     render(<Navbar />);
     expect(screen.getByRole('link', { name: 'About Us' })).toHaveAttribute(
       'href',
@@ -19,7 +19,7 @@ describe('Navbar', () => {
   });
 
   it('renders Knowledge Center as a disabled, non-navigating item', () => {
-    useCatalogTree.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+    useCatalogTree.mockReturnValue({ data: [], isLoading: false, isError: false });
     render(<Navbar />);
 
     const item = screen.getByText('Knowledge Center').closest('[aria-disabled="true"]');
@@ -28,45 +28,69 @@ describe('Navbar', () => {
     expect(screen.getByText('Coming Soon')).toBeInTheDocument();
   });
 
-  it('renders Industries We Serve as a real link to the homepage section', () => {
-    useCatalogTree.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+  it('renders Industries We Serve as a real link to its own page', () => {
+    useCatalogTree.mockReturnValue({ data: [], isLoading: false, isError: false });
     render(<Navbar />);
     expect(
       screen.getByRole('link', { name: 'Industries We Serve' })
-    ).toHaveAttribute('href', '/#industries');
+    ).toHaveAttribute('href', '/industries');
   });
 
-  // Opening the Radix mega menu waits for its portaled content. This is
-  // fast in isolation (~1s) but the first such interaction in this file
-  // can occasionally exceed even a generous timeout under the full
-  // suite's worker-pool contention (confirmed: raising the timeout from
-  // 5s to 15s to 25s each still left it flaking under contention, so a
-  // bigger number isn't the fix). `retry` is the right tool for
-  // contention-driven slowness, as opposed to a deterministic failure.
-  it(
-    'shows a loading state inside the mega menu',
-    { timeout: 15000, retry: 2 },
-    async () => {
-      useCatalogTree.mockReturnValue({ data: undefined, isLoading: true, isError: false });
-      render(<Navbar />);
-      await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
-      expect(await screen.findByText('Loading categories…')).toBeInTheDocument();
-    }
-  );
+  it('renders View All Products as a standalone top-level link', () => {
+    useCatalogTree.mockReturnValue({ data: [], isLoading: false, isError: false });
+    render(<Navbar />);
+    expect(
+      screen.getByRole('link', { name: 'View All Products →' })
+    ).toHaveAttribute('href', '/search');
+  });
+
+  it('shows a loading state in the bar while categories load', () => {
+    useCatalogTree.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+    render(<Navbar />);
+    expect(screen.getByText('Loading categories…')).toBeInTheDocument();
+  });
+
+  it('shows an error state in the bar when categories fail to load', () => {
+    useCatalogTree.mockReturnValue({ data: undefined, isLoading: false, isError: true });
+    render(<Navbar />);
+    expect(screen.getByText('Categories unavailable.')).toBeInTheDocument();
+  });
+
+  it('renders every top-level category as a real, always-visible link', () => {
+    useCatalogTree.mockReturnValue({
+      data: [
+        { id: 12, name: 'EDGE PROTECTION', children: [] },
+        { id: 7, name: 'Stretch Wrap', children: [] },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+    render(<Navbar />);
+
+    expect(screen.getByRole('link', { name: 'EDGE PROTECTION' })).toHaveAttribute(
+      'href',
+      '/category/edge-protection'
+    );
+    expect(screen.getByRole('link', { name: 'Stretch Wrap' })).toHaveAttribute(
+      'href',
+      '/category/stretch-wrap'
+    );
+  });
+
+  it('does not render a chevron dropdown for a category with no children', () => {
+    useCatalogTree.mockReturnValue({
+      data: [{ id: 7, name: 'Stretch Wrap', children: [] }],
+      isLoading: false,
+      isError: false,
+    });
+    render(<Navbar />);
+    expect(
+      screen.queryByRole('button', { name: 'Stretch Wrap submenu' })
+    ).not.toBeInTheDocument();
+  });
 
   it(
-    'shows an error state inside the mega menu',
-    { timeout: 15000, retry: 2 },
-    async () => {
-      useCatalogTree.mockReturnValue({ data: undefined, isLoading: false, isError: true });
-      render(<Navbar />);
-      await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
-      expect(await screen.findByText('Categories unavailable.')).toBeInTheDocument();
-    }
-  );
-
-  it(
-    'renders each node with its children and a View All Products link',
+    "opens only one category's own children in its chevron dropdown, not every category's",
     { timeout: 15000, retry: 2 },
     async () => {
       useCatalogTree.mockReturnValue({
@@ -79,34 +103,56 @@ describe('Navbar', () => {
               { id: 25, name: 'Strapping Protectors', children: [] },
             ],
           },
-          { id: 7, name: 'Stretch Wrap', children: [] },
+          {
+            id: 7,
+            name: 'Stretch Wrap',
+            children: [{ id: 30, name: 'Hand Wrap', children: [] }],
+          },
         ],
         isLoading: false,
         isError: false,
       });
       render(<Navbar />);
-      await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
 
-      expect(
-        await screen.findByRole('menuitem', { name: 'EDGE PROTECTION' })
-      ).toHaveAttribute('href', '/category/edge-protection');
-      expect(
-        screen.getByRole('menuitem', { name: 'Corner Board' })
-      ).toHaveAttribute('href', '/category/edge-protection/corner-board');
-      expect(
-        screen.getByRole('menuitem', { name: 'Strapping Protectors' })
-      ).toHaveAttribute('href', '/category/edge-protection/strapping-protectors');
-      expect(
-        screen.getByRole('menuitem', { name: 'Stretch Wrap' })
-      ).toHaveAttribute('href', '/category/stretch-wrap');
-      expect(
-        screen.getByRole('menuitem', { name: 'View All Products →' })
-      ).toHaveAttribute('href', '/search');
+      await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
+
+      expect(await screen.findByRole('menuitem', { name: 'Corner Board' })).toHaveAttribute(
+        'href',
+        '/category/edge-protection/corner-board'
+      );
+      expect(screen.getByRole('menuitem', { name: 'Strapping Protectors' })).toHaveAttribute(
+        'href',
+        '/category/edge-protection/strapping-protectors'
+      );
+      expect(screen.queryByRole('menuitem', { name: 'Hand Wrap' })).not.toBeInTheDocument();
     }
   );
 
   it(
-    'renders a grandchild (3rd level) with the full canonical path, past the depth the old hard-coded menu supported',
+    'closes the first dropdown when a second category is opened',
+    { timeout: 15000, retry: 2 },
+    async () => {
+      useCatalogTree.mockReturnValue({
+        data: [
+          { id: 12, name: 'EDGE PROTECTION', children: [{ id: 24, name: 'Corner Board', children: [] }] },
+          { id: 7, name: 'Stretch Wrap', children: [{ id: 30, name: 'Hand Wrap', children: [] }] },
+        ],
+        isLoading: false,
+        isError: false,
+      });
+      render(<Navbar />);
+
+      await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
+      expect(await screen.findByRole('menuitem', { name: 'Corner Board' })).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Stretch Wrap submenu' }));
+      expect(await screen.findByRole('menuitem', { name: 'Hand Wrap' })).toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Corner Board' })).not.toBeInTheDocument();
+    }
+  );
+
+  it(
+    'renders a grandchild (3rd level) with the full canonical path inside the category dropdown',
     { timeout: 15000, retry: 2 },
     async () => {
       useCatalogTree.mockReturnValue({
@@ -127,7 +173,7 @@ describe('Navbar', () => {
         isError: false,
       });
       render(<Navbar />);
-      await userEvent.click(screen.getByRole('button', { name: /Shop Products/ }));
+      await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
 
       expect(
         await screen.findByRole('menuitem', { name: 'White Corner Board' })
