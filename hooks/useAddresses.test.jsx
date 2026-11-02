@@ -34,4 +34,10 @@ describe('useAddresses', () => {
     expect(api.get).toHaveBeenCalledWith('/shippingprofiles');
     expect(result.current.data).toEqual([{ id: 16, title: 'Warehouse' }]);
   });
+
+  it('does not fetch when disabled', () => {
+    const { result } = renderHook(() => useAddresses({ enabled: false }), { wrapper });
+    expect(api.get).not.toHaveBeenCalled();
+    expect(result.current.isPending).toBe(true);
+  });
 });

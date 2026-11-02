@@ -5,12 +5,13 @@ import { api } from '@/lib/api';
 
 export const ADDRESSES_QUERY_KEY = ['addresses'];
 
-export function useAddresses() {
+export function useAddresses({ enabled = true } = {}) {
   return useQuery({
     queryKey: ADDRESSES_QUERY_KEY,
     queryFn: async () => {
       const { data } = await api.get('/shippingprofiles');
       return data;
     },
+    enabled,
   });
 }
