@@ -47,6 +47,9 @@ describe('TrackOrderView', () => {
     await userEvent.type(screen.getByLabelText('Email'), 'jane@example.com');
     await userEvent.click(screen.getByRole('button', { name: 'Find my order(s)' }));
     expect(await screen.findByRole('heading', { name: 'Order #ESK-1001' })).toBeInTheDocument();
+    // A guest looking up an order has no account - the detail view must not
+    // borrow the authenticated account page's "My Account" kicker.
+    expect(screen.queryByText('My Account')).not.toBeInTheDocument();
   });
 
   it('renders multiple results as a list, then shows detail on click', async () => {
@@ -64,5 +67,29 @@ describe('TrackOrderView', () => {
 
     await userEvent.click(screen.getAllByRole('button', { name: 'View' })[0]);
     expect(await screen.findByRole('heading', { name: 'Order #ESK-1001' })).toBeInTheDocument();
+  });
+
+  it('shows the rate limiter\'s own message when the lookup is throttled', async () => {
+    mutateAsync.mockRejectedValue({
+      response: { data: { message: 'Too many lookup attempts. Please try again later.' } },
+    });
+    render(<TrackOrderView />);
+    await userEvent.type(screen.getByLabelText('Email'), 'jane@example.com');
+    await userEvent.click(screen.getByRole('button', { name: 'Find my order(s)' }));
+
+    expect(
+      await screen.findByText('Too many lookup attempts. Please try again later.')
+    ).toBeInTheDocument();
+  });
+
+  it('shows a generic error message when the lookup fails with no server message', async () => {
+    mutateAsync.mockRejectedValue(new Error('network down'));
+    render(<TrackOrderView />);
+    await userEvent.type(screen.getByLabelText('Email'), 'jane@example.com');
+    await userEvent.click(screen.getByRole('button', { name: 'Find my order(s)' }));
+
+    expect(
+      await screen.findByText("We couldn't look that up right now. Please try again.")
+    ).toBeInTheDocument();
   });
 });

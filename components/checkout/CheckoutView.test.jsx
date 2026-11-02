@@ -175,4 +175,46 @@ describe('CheckoutView', () => {
     expect(screen.getByLabelText('First name')).toHaveValue('Jane');
     expect(screen.getByLabelText('Address')).toHaveValue('');
   });
+
+  it('switching the saved-address selector updates the prefilled fields to match the newly selected address', async () => {
+    useCartStore.getState().addItem(327, 1, false);
+    useAuthStore.setState({ user: { id: 1, name: 'Jane', surname: 'Doe', email: 'jane@example.com' }, isLoading: false });
+    useAddresses.mockReturnValue({
+      data: [
+        { id: 2, title: 'Office', firstline: '2 Office Pkwy', city: 'Garland', state: 'TX', zip: '75042', phone: '5559876543' },
+        { id: 1, title: 'Warehouse', firstline: '1 Dock Rd', city: 'Dallas', state: 'TX', zip: '75201', phone: '5551234567' },
+      ],
+    });
+    render(<CheckoutView />);
+
+    expect(screen.getByLabelText('Address')).toHaveValue('2 Office Pkwy');
+
+    await userEvent.selectOptions(screen.getByLabelText('Saved address'), '1');
+
+    expect(screen.getByLabelText('Address')).toHaveValue('1 Dock Rd');
+    expect(screen.getByLabelText('City')).toHaveValue('Dallas');
+  });
+
+  it("keeps the shopper's selected address after an unrelated re-render (e.g. a background addresses refetch), instead of silently reverting to the newest address", async () => {
+    useCartStore.getState().addItem(327, 1, false);
+    useAuthStore.setState({ user: { id: 1, name: 'Jane', surname: 'Doe', email: 'jane@example.com' }, isLoading: false });
+    const addressesV1 = [
+      { id: 2, title: 'Office', firstline: '2 Office Pkwy', city: 'Garland', state: 'TX', zip: '75042', phone: '5559876543' },
+      { id: 1, title: 'Warehouse', firstline: '1 Dock Rd', city: 'Dallas', state: 'TX', zip: '75201', phone: '5551234567' },
+    ];
+    useAddresses.mockReturnValue({ data: addressesV1 });
+    const { rerender } = render(<CheckoutView />);
+
+    await userEvent.selectOptions(screen.getByLabelText('Saved address'), '1');
+    expect(screen.getByLabelText('Address')).toHaveValue('1 Dock Rd');
+
+    // Simulate a background refetch: same rows, but a NEW array reference -
+    // exactly what React Query produces on a refetch even when the server
+    // returns identical data (refetchOnReconnect defaults to true, and
+    // app/providers.js only disables refetchOnWindowFocus, not this one).
+    useAddresses.mockReturnValue({ data: addressesV1.map((a) => ({ ...a })) });
+    rerender(<CheckoutView />);
+
+    expect(screen.getByLabelText('Address')).toHaveValue('1 Dock Rd');
+  });
 });

@@ -86,26 +86,41 @@ export function CheckoutView() {
   const [selectedOption, setSelectedOption] = useState(null);
   const [clientSecret, setClientSecret] = useState(null);
   const [orderError, setOrderError] = useState(null);
+  // null until the shopper explicitly picks one - selectedAddress below
+  // falls back to the newest saved address in that case, same default as
+  // before. Kept here, not inside AddressForm, so a re-render that changes
+  // `addresses`' own reference (a background refetch returning the same
+  // rows, say - React Query does this on reconnect) re-derives from
+  // whichever address the shopper actually selected, instead of losing
+  // that selection and silently reverting to the newest one.
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
 
-  // Stable by reference unless user/addresses actually change - AddressForm
-  // re-seeds the form whenever this object's reference changes, so an
-  // unmemoized object literal here would wipe the shopper's in-progress
-  // edits on every unrelated CheckoutView re-render (selecting a shipping
-  // option, say).
+  const selectedAddress = useMemo(() => {
+    if (!addresses || addresses.length === 0) return null;
+    if (selectedAddressId != null) {
+      return addresses.find((candidate) => candidate.id === selectedAddressId) ?? addresses[0];
+    }
+    return addresses[0];
+  }, [addresses, selectedAddressId]);
+
+  // Stable by reference unless user/selectedAddress actually change -
+  // AddressForm re-seeds the form whenever this object's reference
+  // changes, so an unmemoized object literal here would wipe the
+  // shopper's in-progress edits on every unrelated CheckoutView
+  // re-render (selecting a shipping option, say).
   const defaultValues = useMemo(() => {
     if (!user) return undefined;
-    const latest = addresses?.[0];
     return {
       firstName: user.name ?? '',
       lastName: user.surname ?? '',
       email: user.email ?? '',
-      phone: latest?.phone ?? '',
-      addressLine: latest?.firstline ?? '',
-      city: latest?.city ?? '',
-      state: latest?.state ?? '',
-      postalCode: latest?.zip ?? '',
+      phone: selectedAddress?.phone ?? '',
+      addressLine: selectedAddress?.firstline ?? '',
+      city: selectedAddress?.city ?? '',
+      state: selectedAddress?.state ?? '',
+      postalCode: selectedAddress?.zip ?? '',
     };
-  }, [user, addresses]);
+  }, [user, selectedAddress]);
 
   if (cartItems.length === 0) {
     return (
@@ -236,6 +251,8 @@ export function CheckoutView() {
               isSubmitting={shippingMutation.isPending}
               defaultValues={defaultValues}
               addresses={addresses ?? []}
+              selectedAddressId={selectedAddress?.id ?? null}
+              onSelectAddress={setSelectedAddressId}
             />
           </CheckoutStep>
 

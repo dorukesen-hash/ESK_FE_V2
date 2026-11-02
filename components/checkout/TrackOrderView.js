@@ -49,6 +49,7 @@ export function TrackOrderView() {
   const [results, setResults] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [searchedOrderNumber, setSearchedOrderNumber] = useState('');
+  const [lookupError, setLookupError] = useState(null);
   const {
     register,
     handleSubmit,
@@ -57,13 +58,21 @@ export function TrackOrderView() {
 
   async function onSubmit(values) {
     setSelectedOrder(null);
+    setLookupError(null);
     setSearchedOrderNumber(values.orderNumber ?? '');
-    const orders = await lookupMutation.mutateAsync({
-      email: values.email,
-      orderNumber: values.orderNumber ?? '',
-    });
-    setResults(orders);
-    if (orders.length === 1) setSelectedOrder(orders[0]);
+    try {
+      const orders = await lookupMutation.mutateAsync({
+        email: values.email,
+        orderNumber: values.orderNumber ?? '',
+      });
+      setResults(orders);
+      if (orders.length === 1) setSelectedOrder(orders[0]);
+    } catch (error) {
+      setResults(null);
+      setLookupError(
+        error?.response?.data?.message ?? "We couldn't look that up right now. Please try again."
+      );
+    }
   }
 
   return (
@@ -102,6 +111,12 @@ export function TrackOrderView() {
         </button>
       </form>
 
+      {lookupError && (
+        <p className="mt-8 text-sm text-red-600" role="alert">
+          {lookupError}
+        </p>
+      )}
+
       {results && results.length === 0 && (
         <p className="mt-8 text-text-muted">
           We couldn&apos;t find any orders for that email
@@ -124,7 +139,7 @@ export function TrackOrderView() {
               ← Back to results
             </button>
           )}
-          <OrderDetailCard order={selectedOrder} />
+          <OrderDetailCard order={selectedOrder} kicker="Order Status" />
         </div>
       )}
     </main>

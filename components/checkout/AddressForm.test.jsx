@@ -84,20 +84,67 @@ describe('AddressForm', () => {
     expect(screen.queryByLabelText('Saved address')).not.toBeInTheDocument();
   });
 
-  it('switching the saved-address selector refills the address fields, keeping name/email', async () => {
+  // Selecting a different saved address is owned by the caller
+  // (CheckoutView): this form only reports the choice via onSelectAddress
+  // and re-seeds whenever defaultValues itself changes - there's no
+  // internal reset-on-select path here to duplicate that, deliberately
+  // (see AddressForm.js's comment on why only one path should exist).
+  it('shows the selected address and reports a change via onSelectAddress, without refilling the fields itself', async () => {
+    const onSelectAddress = vi.fn();
     render(
       <AddressForm
         onSubmit={vi.fn()}
         isSubmitting={false}
-        defaultValues={{ firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com', phone: '', addressLine: '', city: '', state: '', postalCode: '' }}
+        defaultValues={{ firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com', phone: '5551234567', addressLine: '1 Dock Rd', city: 'Dallas', state: 'TX', postalCode: '75201' }}
         addresses={[
           { id: 1, title: 'Warehouse', firstline: '1 Dock Rd', secondline: null, city: 'Dallas', state: 'TX', zip: '75201', phone: '5551234567' },
           { id: 2, title: 'Office', firstline: '2 Office Pkwy', secondline: null, city: 'Garland', state: 'TX', zip: '75042', phone: '5559876543' },
         ]}
+        selectedAddressId={1}
+        onSelectAddress={onSelectAddress}
       />
     );
 
+    expect(screen.getByLabelText('Saved address')).toHaveValue('1');
+
     await userEvent.selectOptions(screen.getByLabelText('Saved address'), '2');
+
+    expect(onSelectAddress).toHaveBeenCalledWith(2);
+    // The caller hasn't re-rendered with new defaultValues in this test, so
+    // the address fields are still whatever they were - this form never
+    // refills them on its own.
+    expect(screen.getByLabelText('Address')).toHaveValue('1 Dock Rd');
+  });
+
+  it('re-seeds the address fields when defaultValues changes (how a caller-driven selection actually reaches the form)', () => {
+    const { rerender } = render(
+      <AddressForm
+        onSubmit={vi.fn()}
+        isSubmitting={false}
+        defaultValues={{ firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com', phone: '5551234567', addressLine: '1 Dock Rd', city: 'Dallas', state: 'TX', postalCode: '75201' }}
+        addresses={[
+          { id: 1, title: 'Warehouse', firstline: '1 Dock Rd', secondline: null, city: 'Dallas', state: 'TX', zip: '75201', phone: '5551234567' },
+          { id: 2, title: 'Office', firstline: '2 Office Pkwy', secondline: null, city: 'Garland', state: 'TX', zip: '75042', phone: '5559876543' },
+        ]}
+        selectedAddressId={1}
+        onSelectAddress={vi.fn()}
+      />
+    );
+    expect(screen.getByLabelText('Address')).toHaveValue('1 Dock Rd');
+
+    rerender(
+      <AddressForm
+        onSubmit={vi.fn()}
+        isSubmitting={false}
+        defaultValues={{ firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com', phone: '5559876543', addressLine: '2 Office Pkwy', city: 'Garland', state: 'TX', postalCode: '75042' }}
+        addresses={[
+          { id: 1, title: 'Warehouse', firstline: '1 Dock Rd', secondline: null, city: 'Dallas', state: 'TX', zip: '75201', phone: '5551234567' },
+          { id: 2, title: 'Office', firstline: '2 Office Pkwy', secondline: null, city: 'Garland', state: 'TX', zip: '75042', phone: '5559876543' },
+        ]}
+        selectedAddressId={2}
+        onSelectAddress={vi.fn()}
+      />
+    );
 
     expect(screen.getByLabelText('Address')).toHaveValue('2 Office Pkwy');
     expect(screen.getByLabelText('City')).toHaveValue('Garland');

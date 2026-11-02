@@ -42,6 +42,17 @@ describe('OrderDetailCard', () => {
     useUIStore.setState({ isCartDrawerOpen: false });
   });
 
+  it('defaults the kicker to "My Account"', () => {
+    render(<OrderDetailCard order={order} />);
+    expect(screen.getByText('My Account')).toBeInTheDocument();
+  });
+
+  it('shows a custom kicker when given one (guest tracking has no account)', () => {
+    render(<OrderDetailCard order={order} kicker="Order Status" />);
+    expect(screen.getByText('Order Status')).toBeInTheDocument();
+    expect(screen.queryByText('My Account')).not.toBeInTheDocument();
+  });
+
   it('renders order items, addresses, status, carrier, and total', () => {
     render(<OrderDetailCard order={order} />);
 

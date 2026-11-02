@@ -34,7 +34,14 @@ function Field({ id, label, register, error, ...props }) {
   );
 }
 
-export function AddressForm({ onSubmit, isSubmitting, defaultValues, addresses = [] }) {
+export function AddressForm({
+  onSubmit,
+  isSubmitting,
+  defaultValues,
+  addresses = [],
+  selectedAddressId = null,
+  onSelectAddress,
+}) {
   const {
     register,
     handleSubmit,
@@ -45,28 +52,18 @@ export function AddressForm({ onSubmit, isSubmitting, defaultValues, addresses =
   // defaultValues arrives undefined on first render for a logged-in shopper
   // (saved addresses load asynchronously) and populated moments later -
   // react-hook-form only reads defaultValues at mount, so re-seeding here
-  // is what makes the later value actually reach the form. The caller
-  // (CheckoutView) is responsible for keeping this reference stable
-  // (useMemo) when nothing meaningful changed, or every unrelated
-  // re-render would wipe whatever the shopper had already typed.
+  // is what makes the later value actually reach the form. This is also
+  // what re-seeds the form when the shopper picks a different saved
+  // address: selecting one is owned entirely by the caller (CheckoutView),
+  // which recomputes defaultValues from whichever address is now selected -
+  // there is deliberately no second, local reset path here for that, so
+  // there's only one place a selection can ever diverge from what's
+  // actually filled in. The caller is responsible for keeping this
+  // reference stable (useMemo) when nothing meaningful changed, or every
+  // unrelated re-render would wipe whatever the shopper had already typed.
   useEffect(() => {
     if (defaultValues) reset(defaultValues);
   }, [defaultValues, reset]);
-
-  function handleSelectAddress(addressId) {
-    const selected = addresses.find((address) => address.id === addressId);
-    if (!selected) return;
-    reset({
-      firstName: defaultValues?.firstName ?? '',
-      lastName: defaultValues?.lastName ?? '',
-      email: defaultValues?.email ?? '',
-      phone: selected.phone ?? '',
-      addressLine: selected.firstline ?? '',
-      city: selected.city ?? '',
-      state: selected.state ?? '',
-      postalCode: selected.zip ?? '',
-    });
-  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -77,8 +74,8 @@ export function AddressForm({ onSubmit, isSubmitting, defaultValues, addresses =
           </label>
           <select
             id="savedAddress"
-            defaultValue={addresses[0].id}
-            onChange={(event) => handleSelectAddress(Number(event.target.value))}
+            value={selectedAddressId ?? addresses[0].id}
+            onChange={(event) => onSelectAddress?.(Number(event.target.value))}
             className={fieldClass}
           >
             {addresses.map((address) => (

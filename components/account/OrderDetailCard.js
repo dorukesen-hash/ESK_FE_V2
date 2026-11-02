@@ -20,7 +20,7 @@ import {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export function OrderDetailCard({ order }) {
+export function OrderDetailCard({ order, kicker = 'My Account' }) {
   const addItem = useCartStore((state) => state.addItem);
   const openCartDrawer = useUIStore((state) => state.openCartDrawer);
 
@@ -52,7 +52,7 @@ export function OrderDetailCard({ order }) {
     <>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">My Account</p>
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">{kicker}</p>
           <div className="mt-1 flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-extrabold tracking-tight text-text-primary">
               Order {formatOrderNumber(order)}
