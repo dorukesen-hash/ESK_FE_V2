@@ -43,7 +43,7 @@ export function AccountSidebar() {
 
   return (
     <aside className="lg:w-64 lg:shrink-0">
-      <div className="lg:sticky lg:top-32">
+      <div className="helper-sticky">
         <div className="flex items-center gap-3 rounded-lg border border-border p-4">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
             {getInitials(user)}

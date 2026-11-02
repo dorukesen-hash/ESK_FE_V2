@@ -139,7 +139,7 @@ export function CartView() {
           })}
         </ul>
 
-        <div className="lg:sticky lg:top-32 lg:self-start">
+        <div className="helper-sticky lg:self-start">
           <div className="overflow-hidden rounded-lg border border-border">
             <div aria-hidden="true" className="h-1 bg-accent" />
             <div className="p-6">
