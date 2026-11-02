@@ -1,3 +1,7 @@
+'use client';
+
+import { useLoginMemoryStore } from '@/stores/loginMemoryStore';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 function GoogleIcon() {
@@ -30,11 +34,14 @@ function GoogleIcon() {
 // httpOnly cookies /auth/login does and then bounces to /auth/profile
 // (see app/auth/profile/page.js for why that route exists on this side).
 export function GoogleLoginButton() {
+  const remember = useLoginMemoryStore((state) => state.remember);
+
   if (!API_URL) return null;
 
   return (
     <a
       href={`${API_URL}/auth/google`}
+      onClick={() => remember(undefined, 'google')}
       className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-full border border-border text-sm font-semibold text-text-primary transition-colors hover:border-primary"
     >
       <GoogleIcon />

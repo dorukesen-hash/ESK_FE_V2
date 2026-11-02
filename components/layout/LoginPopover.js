@@ -9,6 +9,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useLoginMemoryStore } from '@/stores/loginMemoryStore';
 import { useLogin } from '@/hooks/useLogin';
 import { AuthDivider } from '@/components/auth/AuthDivider';
 import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton';
@@ -24,17 +25,21 @@ export function LoginPopover() {
   const setUser = useAuthStore((state) => state.setUser);
   const loginMutation = useLogin();
   const [serverError, setServerError] = useState(null);
+  const lastEmail = useLoginMemoryStore((state) => state.lastEmail);
+  const lastMethod = useLoginMemoryStore((state) => state.lastMethod);
+  const remember = useLoginMemoryStore((state) => state.remember);
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm({ resolver: yupResolver(schema) });
+  } = useForm({ resolver: yupResolver(schema), defaultValues: { email: lastEmail ?? '' } });
 
   async function onSubmit(values) {
     setServerError(null);
     try {
       const user = await loginMutation.mutateAsync(values);
+      remember(values.email, 'password');
       setUser(user);
       reset();
       closeLoginModal();
@@ -55,6 +60,9 @@ export function LoginPopover() {
 
   return (
     <Modal open={isOpen} onOpenChange={handleOpenChange} title="Log in">
+      {lastMethod === 'google' && (
+        <p className="mb-4 text-sm text-text-muted">You signed in with Google last time.</p>
+      )}
       <GoogleLoginButton />
       <AuthDivider />
 

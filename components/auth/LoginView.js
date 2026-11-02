@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLogin } from '@/hooks/useLogin';
 import { useAuthStore } from '@/stores/authStore';
+import { useLoginMemoryStore } from '@/stores/loginMemoryStore';
 import { AuthShell } from './AuthShell';
 import { AuthDivider } from './AuthDivider';
 import { GoogleLoginButton } from './GoogleLoginButton';
@@ -25,16 +26,20 @@ export function LoginView() {
   const setUser = useAuthStore((state) => state.setUser);
   const loginMutation = useLogin();
   const [serverError, setServerError] = useState(null);
+  const lastEmail = useLoginMemoryStore((state) => state.lastEmail);
+  const lastMethod = useLoginMemoryStore((state) => state.lastMethod);
+  const remember = useLoginMemoryStore((state) => state.remember);
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: yupResolver(schema) });
+  } = useForm({ resolver: yupResolver(schema), defaultValues: { email: lastEmail ?? '' } });
 
   async function onSubmit(values) {
     setServerError(null);
     try {
       const user = await loginMutation.mutateAsync(values);
+      remember(values.email, 'password');
       setUser(user);
       router.push('/account');
     } catch (error) {
@@ -56,6 +61,9 @@ export function LoginView() {
       <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary">
         Log in
       </h1>
+      {lastMethod === 'google' && (
+        <p className="mt-2 text-sm text-text-muted">You signed in with Google last time.</p>
+      )}
 
       <div className="mt-8">
         <GoogleLoginButton />
