@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useRegister } from '@/hooks/useRegister';
 import { useLogin } from '@/hooks/useLogin';
 import { useAuthStore } from '@/stores/authStore';
+import { useLoginMemoryStore } from '@/stores/loginMemoryStore';
 import { RegisterView } from './RegisterView';
 
 vi.mock('@/hooks/useRegister', () => ({ useRegister: vi.fn() }));
@@ -18,6 +19,7 @@ describe('RegisterView', () => {
   beforeEach(() => {
     push.mockClear();
     useAuthStore.setState({ user: null, isLoading: false });
+    useLoginMemoryStore.setState({ lastEmail: null, lastMethod: null });
   });
 
   it('shows validation errors for empty fields', async () => {
@@ -56,6 +58,32 @@ describe('RegisterView', () => {
     });
     expect(useAuthStore.getState().user).toEqual({ id: 1, email: 'jane@example.com' });
     expect(push).toHaveBeenCalledWith('/account');
+  });
+
+  // Found by testing the real flow end-to-end: a user who joins via
+  // registration (likely their very first contact with the site - exactly
+  // who the remember-login feature helps most) never got their email
+  // remembered, because the auto-login above calls useLogin directly and
+  // never went through LoginView's own onSubmit, which is the only place
+  // that called remember() until now.
+  it('remembers the email and password method after registering (the auto-login counts as a login)', async () => {
+    const registerMutateAsync = vi.fn().mockResolvedValue({ message: 'User created successfully.' });
+    const loginMutateAsync = vi.fn().mockResolvedValue({ id: 1, email: 'jane@example.com' });
+    useRegister.mockReturnValue({ mutateAsync: registerMutateAsync, isPending: false });
+    useLogin.mockReturnValue({ mutateAsync: loginMutateAsync, isPending: false });
+    render(<RegisterView />);
+
+    await userEvent.type(screen.getByLabelText('First name'), 'Jane');
+    await userEvent.type(screen.getByLabelText('Last name'), 'Doe');
+    await userEvent.type(screen.getByLabelText('Email'), 'jane@example.com');
+    await userEvent.type(screen.getByLabelText('Password'), 'secret123');
+    await userEvent.click(screen.getByRole('button', { name: 'Create Account' }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/account'));
+    expect(useLoginMemoryStore.getState()).toMatchObject({
+      lastEmail: 'jane@example.com',
+      lastMethod: 'password',
+    });
   });
 
   it('shows the server error message when registration itself fails', async () => {

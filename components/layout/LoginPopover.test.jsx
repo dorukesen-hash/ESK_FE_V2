@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -72,6 +72,23 @@ describe('LoginPopover', () => {
     useUIStore.setState({ isLoginModalOpen: true });
     render(<LoginPopover />);
     expect(screen.getByLabelText('Email')).toHaveValue('remembered@example.com');
+  });
+
+  // See LoginView.test.jsx's identical test for the full explanation:
+  // zustand persist rehydrates asynchronously, so lastEmail is still null
+  // on this component's real first render - a test that sets it before
+  // rendering (above) never proves the prefill survives that.
+  it('picks up the remembered email once it becomes available after mount (persist rehydration)', () => {
+    useLoginMemoryStore.setState({ lastEmail: null, lastMethod: null });
+    useUIStore.setState({ isLoginModalOpen: true });
+    render(<LoginPopover />);
+    expect(screen.getByLabelText('Email')).toHaveValue('');
+
+    act(() => {
+      useLoginMemoryStore.setState({ lastEmail: 'rehydrated@example.com', lastMethod: 'password' });
+    });
+
+    expect(screen.getByLabelText('Email')).toHaveValue('rehydrated@example.com');
   });
 
   it('shows a hint when the last login used Google', () => {

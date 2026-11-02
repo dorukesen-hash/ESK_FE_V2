@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -32,8 +32,22 @@ export function LoginView() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
-  } = useForm({ resolver: yupResolver(schema), defaultValues: { email: lastEmail ?? '' } });
+  } = useForm({ resolver: yupResolver(schema) });
+
+  // defaultValues: { email: lastEmail ?? '' } above would read lastEmail at
+  // mount only - but zustand's persist middleware rehydrates from
+  // localStorage ASYNCHRONOUSLY on the client (so a server-rendered page
+  // never mismatches a client that hasn't read localStorage yet), so
+  // lastEmail is still null on this component's actual first render in a
+  // real browser. Found by testing the real flow (register, log out, come
+  // back), not by inspection - a unit test that sets lastEmail before
+  // rendering never exercises this timing at all. Setting the field once
+  // lastEmail actually arrives is what makes the prefill work outside tests.
+  useEffect(() => {
+    if (lastEmail) setValue('email', lastEmail);
+  }, [lastEmail, setValue]);
 
   async function onSubmit(values) {
     setServerError(null);

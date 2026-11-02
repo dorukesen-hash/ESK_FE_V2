@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useRegister } from '@/hooks/useRegister';
 import { useLogin } from '@/hooks/useLogin';
 import { useAuthStore } from '@/stores/authStore';
+import { useLoginMemoryStore } from '@/stores/loginMemoryStore';
 import { AuthShell } from './AuthShell';
 import { AuthDivider } from './AuthDivider';
 import { GoogleLoginButton } from './GoogleLoginButton';
@@ -31,6 +32,7 @@ export function RegisterView() {
   const registerMutation = useRegister();
   const loginMutation = useLogin();
   const setUser = useAuthStore((state) => state.setUser);
+  const remember = useLoginMemoryStore((state) => state.remember);
   const [serverError, setServerError] = useState(null);
   const {
     register,
@@ -52,6 +54,11 @@ export function RegisterView() {
         email: values.email,
         password: values.password,
       });
+      // This auto-login counts as a login for login-memory purposes too -
+      // registration is often someone's very first contact with the site,
+      // so this is exactly the visitor the remember-login feature exists
+      // to help on their next visit.
+      remember(values.email, 'password');
       setUser(user);
       router.push('/account');
     } catch (error) {

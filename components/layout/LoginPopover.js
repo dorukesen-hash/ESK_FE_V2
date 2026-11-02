@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -32,8 +32,19 @@ export function LoginPopover() {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
-  } = useForm({ resolver: yupResolver(schema), defaultValues: { email: lastEmail ?? '' } });
+  } = useForm({ resolver: yupResolver(schema) });
+
+  // defaultValues: { email: lastEmail ?? '' } above would read lastEmail at
+  // mount only - but zustand's persist middleware rehydrates from
+  // localStorage ASYNCHRONOUSLY on the client, so lastEmail is still null
+  // on this component's actual first render in a real browser. Found by
+  // testing the real flow (log in, log out, come back), not by inspection -
+  // see LoginView.js's identical fix for the full explanation.
+  useEffect(() => {
+    if (lastEmail) setValue('email', lastEmail);
+  }, [lastEmail, setValue]);
 
   async function onSubmit(values) {
     setServerError(null);
