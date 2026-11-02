@@ -1,6 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { Navbar } from './Navbar';
 
@@ -36,7 +35,7 @@ describe('Navbar', () => {
     ).toHaveAttribute('href', '/industries');
   });
 
-  it('renders View All Products as a standalone top-level link', () => {
+  it('renders View All Products as a real link to /search, not just a menu trigger', () => {
     useCatalogTree.mockReturnValue({ data: [], isLoading: false, isError: false });
     render(<Navbar />);
     expect(
@@ -56,10 +55,24 @@ describe('Navbar', () => {
     expect(screen.getByText('Categories unavailable.')).toBeInTheDocument();
   });
 
-  it('renders every top-level category as a real, always-visible link', () => {
+  it('does not show the mega menu panel before it is hovered', () => {
+    useCatalogTree.mockReturnValue({
+      data: [{ id: 12, name: 'EDGE PROTECTION', children: [] }],
+      isLoading: false,
+      isError: false,
+    });
+    render(<Navbar />);
+    expect(screen.queryByText('EDGE PROTECTION')).not.toBeInTheDocument();
+  });
+
+  it('opens the mega menu on hover, listing every top-level category and its children', () => {
     useCatalogTree.mockReturnValue({
       data: [
-        { id: 12, name: 'EDGE PROTECTION', children: [] },
+        {
+          id: 12,
+          name: 'EDGE PROTECTION',
+          children: [{ id: 24, name: 'Corner Board', children: [] }],
+        },
         { id: 7, name: 'Stretch Wrap', children: [] },
       ],
       isLoading: false,
@@ -67,9 +80,15 @@ describe('Navbar', () => {
     });
     render(<Navbar />);
 
+    fireEvent.mouseEnter(screen.getByRole('link', { name: 'View All Products →' }));
+
     expect(screen.getByRole('link', { name: 'EDGE PROTECTION' })).toHaveAttribute(
       'href',
       '/category/edge-protection'
+    );
+    expect(screen.getByRole('link', { name: 'Corner Board' })).toHaveAttribute(
+      'href',
+      '/category/edge-protection/corner-board'
     );
     expect(screen.getByRole('link', { name: 'Stretch Wrap' })).toHaveAttribute(
       'href',
@@ -77,203 +96,109 @@ describe('Navbar', () => {
     );
   });
 
-  it('does not render a chevron dropdown for a category with no children', () => {
+  it('renders a grandchild (3rd level) with the full canonical path inside the mega menu', () => {
     useCatalogTree.mockReturnValue({
-      data: [{ id: 7, name: 'Stretch Wrap', children: [] }],
+      data: [
+        {
+          id: 12,
+          name: 'EDGE PROTECTION',
+          children: [
+            {
+              id: 24,
+              name: 'Corner Board',
+              children: [{ id: 99, name: 'White Corner Board', children: [] }],
+            },
+          ],
+        },
+      ],
       isLoading: false,
       isError: false,
     });
     render(<Navbar />);
+
+    fireEvent.mouseEnter(screen.getByRole('link', { name: 'View All Products →' }));
+
     expect(
-      screen.queryByRole('button', { name: 'Stretch Wrap submenu' })
-    ).not.toBeInTheDocument();
+      screen.getByRole('link', { name: 'White Corner Board' })
+    ).toHaveAttribute('href', '/category/edge-protection/corner-board/white-corner-board');
   });
 
-  it(
-    "opens only one category's own children in its chevron dropdown, not every category's",
-    { timeout: 15000, retry: 2 },
-    async () => {
-      useCatalogTree.mockReturnValue({
-        data: [
-          {
-            id: 12,
-            name: 'EDGE PROTECTION',
-            children: [
-              { id: 24, name: 'Corner Board', children: [] },
-              { id: 25, name: 'Strapping Protectors', children: [] },
-            ],
-          },
-          {
-            id: 7,
-            name: 'Stretch Wrap',
-            children: [{ id: 30, name: 'Hand Wrap', children: [] }],
-          },
-        ],
-        isLoading: false,
-        isError: false,
-      });
-      render(<Navbar />);
-
-      await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
-
-      expect(await screen.findByRole('link', { name: 'Corner Board' })).toHaveAttribute(
-        'href',
-        '/category/edge-protection/corner-board'
-      );
-      expect(screen.getByRole('link', { name: 'Strapping Protectors' })).toHaveAttribute(
-        'href',
-        '/category/edge-protection/strapping-protectors'
-      );
-      expect(screen.queryByRole('link', { name: 'Hand Wrap' })).not.toBeInTheDocument();
-    }
-  );
-
-  it(
-    'closes the first dropdown when a second category is opened',
-    { timeout: 15000, retry: 2 },
-    async () => {
-      useCatalogTree.mockReturnValue({
-        data: [
-          { id: 12, name: 'EDGE PROTECTION', children: [{ id: 24, name: 'Corner Board', children: [] }] },
-          { id: 7, name: 'Stretch Wrap', children: [{ id: 30, name: 'Hand Wrap', children: [] }] },
-        ],
-        isLoading: false,
-        isError: false,
-      });
-      render(<Navbar />);
-
-      await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
-      expect(await screen.findByRole('link', { name: 'Corner Board' })).toBeInTheDocument();
-
-      await userEvent.click(screen.getByRole('button', { name: 'Stretch Wrap submenu' }));
-      expect(await screen.findByRole('link', { name: 'Hand Wrap' })).toBeInTheDocument();
-      expect(screen.queryByRole('link', { name: 'Corner Board' })).not.toBeInTheDocument();
-    }
-  );
-
-  it(
-    "a mousedown inside the open dropdown's own content does not close it",
-    { timeout: 15000, retry: 2 },
-    async () => {
-      useCatalogTree.mockReturnValue({
-        data: [
-          {
-            id: 12,
-            name: 'EDGE PROTECTION',
-            children: [{ id: 24, name: 'Corner Board', children: [] }],
-          },
-        ],
-        isLoading: false,
-        isError: false,
-      });
-      render(<Navbar />);
-
-      await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
-      const cornerBoardLink = await screen.findByRole('link', { name: 'Corner Board' });
-
-      fireEvent.mouseDown(cornerBoardLink);
-
-      expect(screen.getByRole('link', { name: 'Corner Board' })).toBeInTheDocument();
-    }
-  );
-
-  it(
-    'closes the dropdown once a link inside it is actually clicked',
-    { timeout: 15000, retry: 2 },
-    async () => {
-      useCatalogTree.mockReturnValue({
-        data: [
-          {
-            id: 12,
-            name: 'EDGE PROTECTION',
-            children: [{ id: 24, name: 'Corner Board', children: [] }],
-          },
-        ],
-        isLoading: false,
-        isError: false,
-      });
-      render(<Navbar />);
-
-      await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
-      const cornerBoardLink = await screen.findByRole('link', { name: 'Corner Board' });
-
-      fireEvent.click(cornerBoardLink);
-
-      expect(screen.queryByRole('link', { name: 'Corner Board' })).not.toBeInTheDocument();
-    }
-  );
-
-  it('moves focus into the dropdown once it opens', async () => {
+  it('closes the mega menu once a category link inside it is clicked', () => {
     useCatalogTree.mockReturnValue({
-      data: [
-        {
-          id: 12,
-          name: 'EDGE PROTECTION',
-          children: [{ id: 24, name: 'Corner Board', children: [] }],
-        },
-      ],
+      data: [{ id: 12, name: 'EDGE PROTECTION', children: [] }],
       isLoading: false,
       isError: false,
     });
     render(<Navbar />);
 
-    await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
-    const cornerBoardLink = await screen.findByRole('link', { name: 'Corner Board' });
+    fireEvent.mouseEnter(screen.getByRole('link', { name: 'View All Products →' }));
+    fireEvent.click(screen.getByRole('link', { name: 'EDGE PROTECTION' }));
 
-    expect(cornerBoardLink).toHaveFocus();
+    expect(screen.queryByText('EDGE PROTECTION')).not.toBeInTheDocument();
   });
 
-  it('closes the dropdown and returns focus to its trigger on Escape', async () => {
-    useCatalogTree.mockReturnValue({
-      data: [
-        {
-          id: 12,
-          name: 'EDGE PROTECTION',
-          children: [{ id: 24, name: 'Corner Board', children: [] }],
-        },
-      ],
-      isLoading: false,
-      isError: false,
+  describe('closing on mouseleave', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
     });
-    render(<Navbar />);
 
-    const trigger = screen.getByRole('button', { name: 'EDGE PROTECTION submenu' });
-    await userEvent.click(trigger);
-    await screen.findByRole('link', { name: 'Corner Board' });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
 
-    await userEvent.keyboard('{Escape}');
-
-    expect(screen.queryByRole('link', { name: 'Corner Board' })).not.toBeInTheDocument();
-    expect(trigger).toHaveFocus();
-  });
-
-  it(
-    'renders a grandchild (3rd level) with the full canonical path inside the category dropdown',
-    { timeout: 15000, retry: 2 },
-    async () => {
+    it('closes after a short grace period once the pointer leaves the trigger', () => {
       useCatalogTree.mockReturnValue({
-        data: [
-          {
-            id: 12,
-            name: 'EDGE PROTECTION',
-            children: [
-              {
-                id: 24,
-                name: 'Corner Board',
-                children: [{ id: 99, name: 'White Corner Board', children: [] }],
-              },
-            ],
-          },
-        ],
+        data: [{ id: 12, name: 'EDGE PROTECTION', children: [] }],
         isLoading: false,
         isError: false,
       });
       render(<Navbar />);
-      await userEvent.click(screen.getByRole('button', { name: 'EDGE PROTECTION submenu' }));
 
-      expect(
-        await screen.findByRole('link', { name: 'White Corner Board' })
-      ).toHaveAttribute('href', '/category/edge-protection/corner-board/white-corner-board');
-    }
-  );
+      const trigger = screen.getByRole('link', { name: 'View All Products →' });
+      fireEvent.mouseEnter(trigger);
+      expect(screen.getByText('EDGE PROTECTION')).toBeInTheDocument();
+
+      fireEvent.mouseLeave(trigger);
+      expect(screen.getByText('EDGE PROTECTION')).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+      expect(screen.queryByText('EDGE PROTECTION')).not.toBeInTheDocument();
+    });
+
+    it('stays open if the pointer re-enters the trigger before the grace period elapses', () => {
+      useCatalogTree.mockReturnValue({
+        data: [{ id: 12, name: 'EDGE PROTECTION', children: [] }],
+        isLoading: false,
+        isError: false,
+      });
+      render(<Navbar />);
+
+      const trigger = screen.getByRole('link', { name: 'View All Products →' });
+      fireEvent.mouseEnter(trigger);
+      fireEvent.mouseLeave(trigger);
+      fireEvent.mouseEnter(trigger);
+
+      vi.advanceTimersByTime(200);
+      expect(screen.getByText('EDGE PROTECTION')).toBeInTheDocument();
+    });
+
+    it('stays open while the pointer is over the panel itself', () => {
+      useCatalogTree.mockReturnValue({
+        data: [{ id: 12, name: 'EDGE PROTECTION', children: [] }],
+        isLoading: false,
+        isError: false,
+      });
+      render(<Navbar />);
+
+      const trigger = screen.getByRole('link', { name: 'View All Products →' });
+      fireEvent.mouseEnter(trigger);
+      fireEvent.mouseLeave(trigger);
+      fireEvent.mouseEnter(screen.getByText('EDGE PROTECTION'));
+
+      vi.advanceTimersByTime(200);
+      expect(screen.getByText('EDGE PROTECTION')).toBeInTheDocument();
+    });
+  });
 });

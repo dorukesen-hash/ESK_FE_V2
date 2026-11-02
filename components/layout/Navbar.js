@@ -3,24 +3,26 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { ChevronDown } from 'lucide-react';
 import { useCatalogTree } from '@/hooks/useCatalogTree';
 import { canonicalPath } from '@/lib/catalogNodeTree';
 
-// Item set mirrors ESK-Website-Frontend's navbar (content/navigation.js):
-// every top-level category always visible (not hidden behind one shared
-// dropdown), then View All Products, Industries We Serve, Knowledge Center,
-// About Us. Knowledge Center has no corresponding page here yet, so -
-// matching that project's own "never a dead link" rule - it renders
+// View All Products (a hover-triggered mega menu of every category, see
+// MegaMenu below) then Industries We Serve, Knowledge Center, About Us.
+// Knowledge Center has no corresponding page here yet, so - matching
+// ESK-Website-Frontend's own "never a dead link" rule - it renders
 // disabled with a "Coming Soon" tag instead of linking anywhere. Industries
-// We Serve now has its own page (components/info/IndustriesView.js).
+// We Serve has its own page (components/info/IndustriesView.js).
 const comingSoonLinks = ['Knowledge Center'];
+
+// A brief grace period before closing on mouseleave: moving the pointer
+// from the trigger toward the panel below necessarily crosses the gap
+// between them, which would otherwise fire mouseleave on the trigger
+// before the pointer ever reaches the panel. The panel's own onMouseEnter
+// cancels this timeout if the pointer does land inside it in time.
+const CLOSE_DELAY_MS = 150;
 
 const itemClass =
   'flex h-14 shrink-0 items-center whitespace-nowrap px-4 text-sm font-semibold text-on-ink transition-colors hover:bg-ink-elevated hover:text-accent active:translate-y-px';
-
-const chevronButtonClass =
-  'flex h-14 shrink-0 items-center px-2 text-on-ink transition-colors hover:bg-ink-elevated hover:text-accent';
 
 function ComingSoonItem({ label }) {
   return (
@@ -40,11 +42,10 @@ function navHref(tree, nodeId) {
   return `/category/${canonicalPath(tree, nodeId).join('/')}`;
 }
 
-// Plain link now (no Radix DropdownMenu.Item wrapper) - this renders both
-// inside the per-category dropdown below (which is no longer a Radix
-// DropdownMenu.Content, just a plain positioned div) and recursively for
-// its own nested children, so it can't assume any particular menu
-// component context.
+// Plain link (no Radix DropdownMenu.Item wrapper) - this renders both
+// inside the mega menu's portaled panel below (a plain positioned div,
+// not a Radix DropdownMenu.Content) and recursively for its own nested
+// children, so it can't assume any particular menu component context.
 function NavNode({ tree, node, depth }) {
   const link = (
     <Link
@@ -86,80 +87,71 @@ function NavNode({ tree, node, depth }) {
   );
 }
 
-// One top-level category: its label is always a real, standalone link
-// (navigates on click, no other behavior attached to it); if it has
-// children, a *separate* chevron button opens a compact dropdown listing
-// just that node's own children via the unchanged recursive NavNode. The
-// label and the chevron are deliberately two different elements - a single
-// element that is both a navigation link and a dropdown trigger would fire
-// both behaviors on one click, which is the conflict this split avoids.
+// "View All Products" is always a real link (navigates to /search on
+// click); hovering it (or the panel it opens) reveals a mega menu listing
+// every top-level category and its children, via the unchanged recursive
+// NavNode, in a multi-column layout so a shopper can scan every
+// department at once. Hovering never fires the link's own click handler,
+// so the label's navigation and the panel's reveal never conflict - no
+// separate chevron trigger is needed the way a click-toggled disclosure
+// would need one.
 //
-// This is a plain controlled disclosure, not a Radix DropdownMenu: Radix's
-// DropdownMenu applies modal-dialog semantics (hiding/disabling sibling
-// content from the accessibility tree while open, regardless of the
-// `modal` prop's value) that actively conflict with having MANY
-// independent, always-reachable triggers side by side in one bar, where
-// clicking a different category's chevron must be able to switch which
-// one is open. A plain div shown/hidden by local state, closed on an
-// outside click, has no such conflict - but it also means every piece of
-// behavior Radix supplied for free (close-on-select, viewport collision
-// handling, reposition-on-scroll, Escape, focus management) has to be
-// built back in deliberately, which is what the rest of this component does.
-function CategoryItem({ tree, node, openId, setOpenId }) {
-  const isOpen = openId === node.id;
-  const hasChildren = node.children?.length > 0;
+// The panel is portaled to document.body to escape the nav's own
+// `overflow-x-auto` scroll row, which (per the CSS overflow spec) also
+// clips vertically once any axis is non-`visible` - a plain child here
+// would be invisible below the bar's own height. Its position is
+// computed from the trigger's on-screen location and recomputed on
+// scroll/resize while open, so it doesn't strand itself if the nav row
+// (which scrolls horizontally) or the page moves under it. Closing is
+// mouseleave-based (with a short grace period, see CLOSE_DELAY_MS) rather
+// than outside-click detection, since nothing about a hover menu's close
+// condition involves clicking.
+function MegaMenu({ tree }) {
+  const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
-  const dropdownRef = useRef(null);
-  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
   const [position, setPosition] = useState(null);
-  const dropdownId = `category-dropdown-${node.id}`;
+  const closeTimeoutRef = useRef(null);
+
+  function openNow() {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setIsOpen(true);
+  }
+
+  function scheduleClose() {
+    closeTimeoutRef.current = setTimeout(() => {
+      closeTimeoutRef.current = null;
+      setIsOpen(false);
+    }, CLOSE_DELAY_MS);
+  }
+
+  // Navbar lives in the storefront layout, outside {children}, so it is
+  // never remounted when a link inside the panel navigates - without
+  // this, the panel would stay open and hanging over the destination
+  // page until the pointer happens to leave it afterward.
+  function closeNow() {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setIsOpen(false);
+  }
 
   useEffect(() => {
-    if (!isOpen) return undefined;
-
-    function handleClickOutside(event) {
-      const insideTrigger = containerRef.current && containerRef.current.contains(event.target);
-      const insideDropdown = dropdownRef.current && dropdownRef.current.contains(event.target);
-      if (!insideTrigger && !insideDropdown) {
-        setOpenId(null);
-      }
-    }
-
-    function handleKeyDown(event) {
-      if (event.key === 'Escape') {
-        setOpenId(null);
-        triggerRef.current?.focus();
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
     };
-  }, [isOpen, setOpenId]);
+  }, []);
 
-  // The dropdown content below is portaled to document.body (see render),
-  // escaping the nav's own scroll row (which clips on both axes - see the
-  // comment on the <nav> row below). A portal has no CSS positioning
-  // context of its own, so its position must be computed from the
-  // trigger's real on-screen location, clamped to stay inside the
-  // viewport, and recomputed whenever the page scrolls or resizes while
-  // open (the nav row itself scrolls horizontally, which would otherwise
-  // strand the panel at its old coordinates). useLayoutEffect (not
-  // useEffect) so this runs before the browser paints - on reopen, a
-  // plain useEffect would paint one frame at whatever `position` was left
-  // over from the previous open before correcting itself.
   useLayoutEffect(() => {
     if (!isOpen || !containerRef.current) return undefined;
 
-    const DROPDOWN_WIDTH = 220;
-
     function updatePosition() {
       const rect = containerRef.current.getBoundingClientRect();
-      const left = Math.max(8, Math.min(rect.left, window.innerWidth - DROPDOWN_WIDTH - 8));
-      setPosition({ top: rect.bottom, left });
+      setPosition({ top: rect.bottom, left: rect.left });
     }
 
     updatePosition();
@@ -171,74 +163,43 @@ function CategoryItem({ tree, node, openId, setOpenId }) {
     };
   }, [isOpen]);
 
-  // Once the portaled content actually mounts - which requires BOTH
-  // isOpen and position to be true; the render where isOpen first becomes
-  // true still has position===null (the layout effect above hasn't run
-  // yet), so the portal isn't in the DOM and dropdownRef.current is still
-  // null on that render - move focus into it, so Tab from the chevron
-  // continues into the dropdown's own links instead of skipping to the
-  // next bar item (the portal is appended at the end of document.body,
-  // so it's out of the natural DOM tab order otherwise). Depending on
-  // BOTH isOpen and position (not just isOpen) is what makes this run on
-  // the render where dropdownRef is actually populated - depending on
-  // isOpen alone would fire too early and silently no-op.
-  useEffect(() => {
-    if (isOpen && position && dropdownRef.current) {
-      dropdownRef.current.querySelector('a')?.focus();
-    }
-  }, [isOpen, position]);
-
   return (
-    <div ref={containerRef} className="relative flex shrink-0 items-center">
-      <Link href={navHref(tree, node.id)} className={itemClass}>
-        {node.name}
+    <div
+      ref={containerRef}
+      className="relative flex shrink-0 items-center"
+      onMouseEnter={openNow}
+      onMouseLeave={scheduleClose}
+    >
+      <Link href="/search" className={itemClass}>
+        View All Products →
       </Link>
-      {hasChildren && (
-        <>
-          <button
-            ref={triggerRef}
-            type="button"
-            aria-label={`${node.name} submenu`}
-            aria-expanded={isOpen}
-            aria-haspopup="true"
-            aria-controls={dropdownId}
-            onClick={() => setOpenId(isOpen ? null : node.id)}
-            className={`${chevronButtonClass} ${isOpen ? 'bg-ink-elevated text-accent' : ''}`}
+      {isOpen &&
+        position &&
+        createPortal(
+          <div
+            ref={panelRef}
+            onMouseEnter={openNow}
+            onMouseLeave={scheduleClose}
+            onClick={closeNow}
+            style={{ position: 'fixed', top: position.top, left: position.left }}
+            className="animate-dropdown-in z-20 max-h-[70vh] w-[min(92vw,64rem)] overflow-y-auto rounded-b-lg border border-t-0 border-border bg-surface shadow-lg"
           >
-            <ChevronDown
-              aria-hidden="true"
-              className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-            />
-          </button>
-          {isOpen &&
-            position &&
-            createPortal(
-              <div
-                id={dropdownId}
-                ref={dropdownRef}
-                onClick={() => setOpenId(null)}
-                style={{ position: 'fixed', top: position.top, left: position.left }}
-                className="animate-dropdown-in z-20 max-h-[70vh] min-w-[220px] overflow-y-auto rounded-b-lg border border-t-0 border-border bg-surface p-4 shadow-lg"
-              >
-                {node.children.map((child) => (
-                  <NavNode key={child.id} tree={tree} node={child} depth={0} />
+            <div className="h-1 bg-accent" />
+            <div className="p-6">
+              <div className="columns-2 gap-x-8 sm:columns-3 lg:columns-4">
+                {tree.map((node) => (
+                  <NavNode key={node.id} tree={tree} node={node} depth={0} />
                 ))}
-              </div>,
-              document.body
-            )}
-        </>
-      )}
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
 
 export function Navbar() {
-  // Only one category's dropdown may be open at a time - tracked as the
-  // single open node's id (or null) rather than per-node boolean state,
-  // so opening a second category's dropdown implicitly closes the first:
-  // setOpenId(nodeB.id) makes nodeA's CategoryItem re-render with
-  // isOpen=false and nodeB's with isOpen=true in the same render pass.
-  const [openId, setOpenId] = useState(null);
   const { data: tree, isLoading, isError } = useCatalogTree();
 
   return (
@@ -254,20 +215,7 @@ export function Navbar() {
             Categories unavailable.
           </p>
         )}
-        {tree &&
-          tree.map((node) => (
-            <CategoryItem
-              key={node.id}
-              tree={tree}
-              node={node}
-              openId={openId}
-              setOpenId={setOpenId}
-            />
-          ))}
-
-        <Link href="/search" className={itemClass}>
-          View All Products →
-        </Link>
+        {tree && <MegaMenu tree={tree} />}
 
         <Link href="/industries" className={itemClass}>
           Industries We Serve
