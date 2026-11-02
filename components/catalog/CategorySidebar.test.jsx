@@ -25,11 +25,9 @@ const tree = [
   },
 ];
 
-const department = tree[0];
-
 describe('CategorySidebar', () => {
-  it("renders every node in the department's subtree as a link, except the current node", () => {
-    render(<CategorySidebar tree={tree} department={department} currentNodeId={2} />);
+  it('renders every node in the active department as a link, except the current node', () => {
+    render(<CategorySidebar tree={tree} currentNodeId={2} />);
 
     const nav = screen.getByRole('navigation', { name: 'Category' });
     expect(within(nav).getByRole('link', { name: 'Lashing Equipment' })).toHaveAttribute(
@@ -45,16 +43,22 @@ describe('CategorySidebar', () => {
     expect(within(nav).getByText('Cord Strapping')).toHaveAttribute('aria-current', 'page');
   });
 
-  it('does not render any node from a different top-level department', () => {
-    render(<CategorySidebar tree={tree} department={department} currentNodeId={2} />);
+  it('also renders every other top-level department in the catalog, not just the active one', () => {
+    render(<CategorySidebar tree={tree} currentNodeId={2} />);
 
     const nav = screen.getByRole('navigation', { name: 'Category' });
-    expect(within(nav).queryByText('EDGE PROTECTION')).not.toBeInTheDocument();
-    expect(within(nav).queryByText('Corner Board')).not.toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: 'EDGE PROTECTION' })).toHaveAttribute(
+      'href',
+      '/category/edge-protection'
+    );
+    expect(within(nav).getByRole('link', { name: 'Corner Board' })).toHaveAttribute(
+      'href',
+      '/category/edge-protection/corner-board'
+    );
   });
 
   it('highlights the current node correctly at any depth, including a grandchild', () => {
-    render(<CategorySidebar tree={tree} department={department} currentNodeId={4} />);
+    render(<CategorySidebar tree={tree} currentNodeId={4} />);
 
     const nav = screen.getByRole('navigation', { name: 'Category' });
     expect(within(nav).getByText('Composite Strapping')).toHaveAttribute('aria-current', 'page');
@@ -62,8 +66,8 @@ describe('CategorySidebar', () => {
     expect(within(nav).getByRole('link', { name: 'PET Strapping' })).toBeInTheDocument();
   });
 
-  it('highlights the department root itself when it is the current node', () => {
-    render(<CategorySidebar tree={tree} department={department} currentNodeId={1} />);
+  it('highlights a top-level department itself when it is the current node', () => {
+    render(<CategorySidebar tree={tree} currentNodeId={1} />);
 
     const nav = screen.getByRole('navigation', { name: 'Category' });
     expect(within(nav).getByText('STRAPPING & LOAD SECUREMENT')).toHaveAttribute(
@@ -71,18 +75,25 @@ describe('CategorySidebar', () => {
       'page'
     );
     expect(within(nav).getByRole('link', { name: 'Cord Strapping' })).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: 'EDGE PROTECTION' })).toBeInTheDocument();
   });
 
-  it('renders a department with no children at all as a single highlighted line, without throwing', () => {
-    const lonelyDepartment = { id: 20, name: 'Solo Department', children: [] };
+  it('caps its own height to the main content column and scrolls internally instead of growing the page', () => {
+    render(<CategorySidebar tree={tree} currentNodeId={2} />);
+
+    const nav = screen.getByRole('navigation', { name: 'Category' });
+    expect(nav).toHaveClass(
+      'helper-sticky-under-breadcrumbs',
+      'lg:max-h-[var(--category-content-height,none)]',
+      'lg:overflow-y-auto',
+      'scrollbar-thin'
+    );
+  });
+
+  it('renders a lone department with no children at all without throwing', () => {
+    const lonelyTree = [{ id: 20, name: 'Solo Department', children: [] }];
     expect(() =>
-      render(
-        <CategorySidebar
-          tree={[lonelyDepartment]}
-          department={lonelyDepartment}
-          currentNodeId={20}
-        />
-      )
+      render(<CategorySidebar tree={lonelyTree} currentNodeId={20} />)
     ).not.toThrow();
 
     const nav = screen.getByRole('navigation', { name: 'Category' });

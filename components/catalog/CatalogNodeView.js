@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCatalogTree } from '@/hooks/useCatalogTree';
+import { useElementHeightVar } from '@/hooks/useElementHeightVar';
 import {
   findNodeBySlug,
   findAncestors,
@@ -27,6 +28,27 @@ export function CatalogNodeView({ path }) {
   const { data: tree, isLoading, isError } = useCatalogTree();
   const slug = path[path.length - 1];
   const node = tree ? findNodeBySlug(tree, slug) : null;
+  // The sidebar lists every department, so its own content can be much
+  // taller than any one category's actual page content. Measuring this
+  // column's real height and capping the sidebar to it (CategorySidebar's
+  // lg:max-h-[var(--category-content-height,none)]) is what stops the
+  // sidebar from ever being the thing that decides how tall the page is -
+  // lg:self-start below is what makes that measurement trustworthy: without
+  // it, this column would itself stretch to match the grid row (which the
+  // sidebar's own height also feeds into), feeding the inflated number
+  // straight back into the cap.
+  const contentRef = useElementHeightVar('--category-content-height');
+  // Every subcategory card is the same height (aspect-square, driven by
+  // its own width, not its content) - measuring just the first one gives
+  // a real per-row height to build a "stay at least 2 rows tall" floor
+  // from, instead of a guessed px/vw value that would drift the moment
+  // the column widths or card text wrapping changed. Each card also
+  // needs its own self-start (see below) for the same reason the
+  // content column needs lg:self-start above: without it, the measured
+  // card stretches to fill whatever min-height the measurement itself
+  // just produced, doubling on every resize and running away (caught
+  // this empirically - the height shot past 33,000,000px).
+  const firstCardRef = useElementHeightVar('--category-card-height');
 
   useEffect(() => {
     if (!tree || !node) return;
@@ -66,7 +88,6 @@ export function CatalogNodeView({ path }) {
   }
 
   const ancestors = findAncestors(tree, node.id);
-  const department = ancestors.length > 0 ? ancestors[0] : node;
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     ...ancestors.map((ancestor) => ({
@@ -85,10 +106,10 @@ export function CatalogNodeView({ path }) {
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[200px_1fr]">
         <div className="hidden lg:block">
-          <CategorySidebar tree={tree} department={department} currentNodeId={node.id} />
+          <CategorySidebar tree={tree} currentNodeId={node.id} />
         </div>
 
-        <div data-testid="category-main">
+        <div data-testid="category-main" ref={contentRef} className="lg:self-start">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
             {ancestors[0]?.name ?? 'Category'}
           </p>
@@ -101,15 +122,16 @@ export function CatalogNodeView({ path }) {
               <p className="mt-2 text-text-muted">
                 {children.length} {children.length === 1 ? 'subcategory' : 'subcategories'}
               </p>
-              <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-4">
-                {children.map((child) => {
+              <div className="mt-10 grid min-h-[calc(var(--category-card-height,0px)*2_+_1.5rem)] grid-cols-2 gap-6 sm:grid-cols-4">
+                {children.map((child, index) => {
                   const image = nodeImage(child);
                   const productCount = countDescendantVariants(child);
                   return (
                     <Link
                       key={child.id}
+                      ref={index === 0 ? firstCardRef : undefined}
                       href={`/category/${canonicalPath(tree, child.id).join('/')}`}
-                      className="group flex flex-col"
+                      className="group flex flex-col self-start"
                     >
                       <div className="relative aspect-square overflow-hidden rounded-lg bg-button-secondary-bg">
                         {image && (

@@ -54,6 +54,27 @@ describe('CatalogNodeView', () => {
     ).toHaveAttribute('href', '/category/cord-strapping/composite-strapping');
   });
 
+  it('keeps the subcategory card grid at least 2 card-rows tall, measured from the first card', () => {
+    useCatalogTree.mockReturnValue({ data: tree, isLoading: false, isError: false });
+    render(<CatalogNodeView path={['cord-strapping']} />);
+
+    const main = screen.getByTestId('category-main');
+    const grid = within(main).getByRole('link', { name: /Composite Strapping/ }).parentElement;
+    expect(grid).toHaveClass('min-h-[calc(var(--category-card-height,0px)*2_+_1.5rem)]');
+    expect(document.documentElement.style.getPropertyValue('--category-card-height')).toBe('0px');
+  });
+
+  it("measures its own content column instead of stretching to match the sidebar, so the sidebar's height cap reflects this column's real size", () => {
+    useCatalogTree.mockReturnValue({ data: tree, isLoading: false, isError: false });
+    render(<CatalogNodeView path={['cord-strapping']} />);
+
+    const main = screen.getByTestId('category-main');
+    expect(main).toHaveClass('lg:self-start');
+    expect(document.documentElement.style.getPropertyValue('--category-content-height')).toBe(
+      '0px'
+    );
+  });
+
   it('renders a buyable table row per variant on the resolved node', () => {
     useCatalogTree.mockReturnValue({ data: tree, isLoading: false, isError: false });
     render(<CatalogNodeView path={['cord-strapping', 'composite-strapping']} />);

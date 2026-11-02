@@ -46,11 +46,41 @@ function SidebarNode({ tree, node, currentNodeId, depth }) {
   );
 }
 
-export function CategorySidebar({ tree, department, currentNodeId }) {
+// Renders every top-level department in the catalog, not just the one
+// the current page belongs to - matching the always-visible-everything
+// nav bar from Part 2, this sidebar is a full catalog navigator, not a
+// scoped-to-current-branch one.
+// lg:max-h-[var(--category-content-height,none)] caps this nav to the
+// main content column's own real measured height (set by CatalogNodeView
+// via useElementHeightVar), not a percentage/viewport guess: a grid row's
+// auto height is the MAX of every item's natural content size, including
+// a percentage-height item (it resolves to "auto" - its own content size -
+// whenever the row it's sizing is itself indefinite), so height:100% on
+// this nav fed its own full (now every-department-long) size straight
+// back into the row instead of ever being capped by it. An explicit
+// max-height, measured from the sibling that should actually be driving
+// the page's height, is what makes this nav - not vice versa - the thing
+// that gets capped. Whatever doesn't fit inside that height scrolls
+// inside this nav instead of ever growing the page.
+// helper-sticky-under-breadcrumbs (see globals.css) sticks it right
+// below the real, measured height of the chrome + this page's own
+// Breadcrumbs bar, instead of a guessed fixed offset.
+export function CategorySidebar({ tree, currentNodeId }) {
   return (
-    <nav aria-label="Category" className="lg:sticky lg:top-32 lg:self-start">
+    <nav
+      aria-label="Category"
+      className="scrollbar-thin helper-sticky-under-breadcrumbs lg:max-h-[var(--category-content-height,none)] lg:overflow-y-auto"
+    >
       <ul>
-        <SidebarNode tree={tree} node={department} currentNodeId={currentNodeId} depth={0} />
+        {tree.map((department) => (
+          <SidebarNode
+            key={department.id}
+            tree={tree}
+            node={department}
+            currentNodeId={currentNodeId}
+            depth={0}
+          />
+        ))}
       </ul>
     </nav>
   );
