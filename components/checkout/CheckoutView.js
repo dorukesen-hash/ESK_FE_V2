@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore } from '@/stores/cartStore';
+import { useAuthStore } from '@/stores/authStore';
+import { useAddresses } from '@/hooks/useAddresses';
 import { useLastOrderStore } from '@/stores/lastOrderStore';
 import { useVariantsByIds } from '@/hooks/useVariantsByIds';
 import { useShippingOptions } from '@/hooks/useShippingOptions';
@@ -72,8 +74,10 @@ export function CheckoutView() {
   const cartItems = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clear);
   const setLastOrder = useLastOrderStore((state) => state.setLastOrder);
+  const user = useAuthStore((state) => state.user);
 
   const { data: lines } = useVariantsByIds(cartItems.map((item) => item.variantId));
+  const { data: addresses } = useAddresses({ enabled: Boolean(user) });
   const shippingMutation = useShippingOptions();
   const paymentIntentMutation = useCreatePaymentIntent();
   const orderMutation = useCreateOrder();
@@ -82,6 +86,26 @@ export function CheckoutView() {
   const [selectedOption, setSelectedOption] = useState(null);
   const [clientSecret, setClientSecret] = useState(null);
   const [orderError, setOrderError] = useState(null);
+
+  // Stable by reference unless user/addresses actually change - AddressForm
+  // re-seeds the form whenever this object's reference changes, so an
+  // unmemoized object literal here would wipe the shopper's in-progress
+  // edits on every unrelated CheckoutView re-render (selecting a shipping
+  // option, say).
+  const defaultValues = useMemo(() => {
+    if (!user) return undefined;
+    const latest = addresses?.[0];
+    return {
+      firstName: user.name ?? '',
+      lastName: user.surname ?? '',
+      email: user.email ?? '',
+      phone: latest?.phone ?? '',
+      addressLine: latest?.firstline ?? '',
+      city: latest?.city ?? '',
+      state: latest?.state ?? '',
+      postalCode: latest?.zip ?? '',
+    };
+  }, [user, addresses]);
 
   if (cartItems.length === 0) {
     return (
@@ -210,6 +234,8 @@ export function CheckoutView() {
             <AddressForm
               onSubmit={handleAddressSubmit}
               isSubmitting={shippingMutation.isPending}
+              defaultValues={defaultValues}
+              addresses={addresses ?? []}
             />
           </CheckoutStep>
 

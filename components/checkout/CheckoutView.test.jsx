@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useCartStore } from '@/stores/cartStore';
+import { useAuthStore } from '@/stores/authStore';
+import { useAddresses } from '@/hooks/useAddresses';
 import { useVariantsByIds } from '@/hooks/useVariantsByIds';
 import { useShippingOptions } from '@/hooks/useShippingOptions';
 import { useCreatePaymentIntent } from '@/hooks/useCreatePaymentIntent';
@@ -11,6 +13,7 @@ import { CheckoutView } from './CheckoutView';
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
+vi.mock('@/hooks/useAddresses', () => ({ useAddresses: vi.fn() }));
 vi.mock('@/hooks/useVariantsByIds', () => ({ useVariantsByIds: vi.fn() }));
 vi.mock('@/hooks/useShippingOptions', () => ({ useShippingOptions: vi.fn() }));
 vi.mock('@/hooks/useCreatePaymentIntent', () => ({ useCreatePaymentIntent: vi.fn() }));
@@ -35,6 +38,8 @@ describe('CheckoutView', () => {
     useCartStore.getState().clear();
     mutate.mockClear();
     mutateAsync.mockClear();
+    useAuthStore.setState({ user: null, isLoading: false });
+    useAddresses.mockReturnValue({ data: undefined });
     useVariantsByIds.mockReturnValue({ data: [] });
     useShippingOptions.mockReturnValue({
       mutate,
@@ -131,5 +136,43 @@ describe('CheckoutView', () => {
       shipping: { price: 12.5 },
     });
     expect(await screen.findByText(/Payment is not configured yet/)).toBeInTheDocument();
+  });
+
+  it('leaves the form blank for a guest (not logged in)', () => {
+    useCartStore.getState().addItem(327, 1, false);
+    render(<CheckoutView />);
+    expect(screen.getByLabelText('First name')).toHaveValue('');
+    expect(useAddresses).toHaveBeenCalledWith({ enabled: false });
+  });
+
+  it("prefills name/email from the logged-in user and the most recently saved address", () => {
+    useCartStore.getState().addItem(327, 1, false);
+    useAuthStore.setState({
+      user: { id: 1, name: 'Jane', surname: 'Doe', email: 'jane@example.com' },
+      isLoading: false,
+    });
+    useAddresses.mockReturnValue({
+      data: [
+        { id: 2, title: 'Office', firstline: '2 Office Pkwy', city: 'Garland', state: 'TX', zip: '75042', phone: '5559876543' },
+        { id: 1, title: 'Warehouse', firstline: '1 Dock Rd', city: 'Dallas', state: 'TX', zip: '75201', phone: '5551234567' },
+      ],
+    });
+    render(<CheckoutView />);
+
+    expect(screen.getByLabelText('First name')).toHaveValue('Jane');
+    expect(screen.getByLabelText('Email')).toHaveValue('jane@example.com');
+    // addresses[0] is the most recently added (useAddresses/getShippingprofiles
+    // now returns newest-first - Task 9) - its fields prefill, not any other entry's.
+    expect(screen.getByLabelText('Address')).toHaveValue('2 Office Pkwy');
+    expect(useAddresses).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('does not crash prefilling for a logged-in user with zero saved addresses', () => {
+    useCartStore.getState().addItem(327, 1, false);
+    useAuthStore.setState({ user: { id: 1, name: 'Jane', surname: 'Doe', email: 'jane@example.com' }, isLoading: false });
+    useAddresses.mockReturnValue({ data: [] });
+    render(<CheckoutView />);
+    expect(screen.getByLabelText('First name')).toHaveValue('Jane');
+    expect(screen.getByLabelText('Address')).toHaveValue('');
   });
 });
