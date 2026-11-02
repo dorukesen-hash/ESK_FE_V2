@@ -1,5 +1,4 @@
-import { Header } from '@/components/layout/Header';
-import { Navbar } from '@/components/layout/Navbar';
+import { ChromeStack } from '@/components/layout/ChromeStack';
 import { Footer } from '@/components/layout/Footer';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { AccountSidebar } from '@/components/account/AccountSidebar';
@@ -7,10 +6,7 @@ import { AccountSidebar } from '@/components/account/AccountSidebar';
 export default function AccountLayout({ children }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="sticky top-0 z-20">
-        <Header />
-        <Navbar />
-      </div>
+      <ChromeStack />
 
       <AuthGuard>
         <div className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">

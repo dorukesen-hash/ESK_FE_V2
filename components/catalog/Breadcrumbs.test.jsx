@@ -23,4 +23,12 @@ describe('Breadcrumbs', () => {
     expect(current.tagName).not.toBe('A');
     expect(current).toHaveAttribute('aria-current', 'page');
   });
+
+  it('sticks itself below the chrome and publishes its own height for anything below it', () => {
+    render(<Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Current' }]} />);
+
+    const nav = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    expect(nav).toHaveClass('breadcrumbs-sticky', 'bg-background');
+    expect(document.documentElement.style.getPropertyValue('--breadcrumbs-height')).toBe('0px');
+  });
 });

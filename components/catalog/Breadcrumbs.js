@@ -1,8 +1,17 @@
+'use client';
+
 import Link from 'next/link';
+import { useElementHeightVar } from '@/hooks/useElementHeightVar';
 
 export function Breadcrumbs({ items }) {
+  const ref = useElementHeightVar('--breadcrumbs-height');
+
   return (
-    <nav aria-label="Breadcrumb" className="text-sm text-text-muted">
+    <nav
+      ref={ref}
+      aria-label="Breadcrumb"
+      className="breadcrumbs-sticky bg-background py-3 text-sm text-text-muted"
+    >
       <ol className="flex flex-wrap items-center gap-2">
         {items.map((item, index) => (
           <li key={`${index}-${item.label}`} className="flex items-center gap-2">

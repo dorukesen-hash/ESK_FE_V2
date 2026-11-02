@@ -34,6 +34,14 @@
 :root {
   color-scheme: light;
   --shadow-card-ink: rgba(0, 0, 0, 0.08);
+  /* Real measured heights (useElementHeightVar), not guessed pixel
+     constants: the sticky header+navbar block's height, and each page's
+     own sticky breadcrumbs bar's height. Anything that sticks below one
+     or both (see .breadcrumbs-sticky / .helper-sticky* below) reads its
+     offset from here instead of a magic number that silently drifts out
+     of sync the moment either block's own content changes size. */
+  --chrome-height: 0px;
+  --breadcrumbs-height: 0px;
 }
 
 .dark {
@@ -98,6 +106,54 @@ body {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* A visible-but-minimal scrollbar for a region that genuinely needs one
+   (unlike .scrollbar-hide above, which removes it entirely) - a plain
+   thin thumb in the theme's own border color, no track fill, so it reads
+   as part of the page rather than a default OS-chrome scrollbar. */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 3px;
+}
+
+/* A page's Breadcrumbs bar sticks directly under the sticky header+
+   navbar (ChromeStack), at every viewport width - not just desktop,
+   since the chrome above it is sticky at every width too. */
+.breadcrumbs-sticky {
+  position: sticky;
+  top: var(--chrome-height);
+  z-index: 10;
+}
+
+@media (min-width: 64rem) {
+  /* A helper column with nothing above it except the chrome itself
+     (the cart's order summary, the account sidebar). */
+  .helper-sticky {
+    position: sticky;
+    top: var(--chrome-height);
+  }
+
+  /* A helper column on a page that also has a sticky Breadcrumbs bar
+     (the category sidebar, the product buy box) - it sticks below
+     both, never underneath either. */
+  .helper-sticky-under-breadcrumbs {
+    position: sticky;
+    top: calc(var(--chrome-height) + var(--breadcrumbs-height));
+  }
 }
 
 @keyframes slide-progress {
