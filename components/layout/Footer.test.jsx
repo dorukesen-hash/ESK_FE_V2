@@ -9,6 +9,10 @@ describe('Footer', () => {
       'href',
       '/about-us'
     );
+    expect(screen.getByRole('link', { name: 'Track Order' })).toHaveAttribute(
+      'href',
+      '/track-order'
+    );
     expect(
       screen.getByRole('link', { name: 'Product Guidance' })
     ).toHaveAttribute('href', '/product-guidance');

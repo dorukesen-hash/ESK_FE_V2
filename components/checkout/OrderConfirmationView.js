@@ -16,8 +16,8 @@ export function OrderConfirmationView({ orderNumber }) {
         <p className="mt-2 text-text-muted">
           This page only shows the order right after you place it.
         </p>
-        <Link href="/search" className="mt-4 inline-block text-primary hover:text-primary-hover">
-          Continue shopping
+        <Link href="/track-order" className="mt-4 inline-block text-primary hover:text-primary-hover">
+          Look up your order
         </Link>
       </main>
     );

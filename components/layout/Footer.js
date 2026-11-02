@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 const companyLinks = [
   { href: '/about-us', label: 'About Us' },
+  { href: '/track-order', label: 'Track Order' },
   { href: '/product-guidance', label: 'Product Guidance' },
   { href: '/quote', label: 'Request a Quote' },
   { href: '/faq', label: 'FAQ' },

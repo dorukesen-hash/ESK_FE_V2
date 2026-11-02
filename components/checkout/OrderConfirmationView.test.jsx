@@ -13,6 +13,14 @@ describe('OrderConfirmationView', () => {
     expect(screen.getByText("We couldn't find that order")).toBeInTheDocument();
   });
 
+  it('links to order lookup when no matching order is in local state', () => {
+    render(<OrderConfirmationView orderNumber="100001" />);
+    expect(screen.getByRole('link', { name: 'Look up your order' })).toHaveAttribute(
+      'href',
+      '/track-order'
+    );
+  });
+
   it('shows a not-found message when the order number does not match the stored order', () => {
     useLastOrderStore.getState().setLastOrder({ orderNumber: '100001', lines: [] });
     render(<OrderConfirmationView orderNumber="999999" />);
