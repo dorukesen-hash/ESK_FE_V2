@@ -57,6 +57,45 @@ describe('SearchFilters', () => {
     expect(screen.getByRole('button', { name: 'Composite Strapping' })).toBeInTheDocument();
   });
 
+  it('auto-expands a node once it becomes active after a later re-render, not just at mount', () => {
+    // Every CategoryGroup mounts once, together, when the tree first
+    // loads - selecting a filter afterwards re-renders with new props
+    // on the same mounted instances, it never remounts them. A group
+    // whose open state only looked at its props at mount would stay
+    // collapsed here even though its child is now the active filter.
+    const { rerender } = renderFilters();
+    expect(screen.queryByRole('button', { name: 'Composite Strapping' })).not.toBeInTheDocument();
+
+    rerender(
+      <SearchFilters
+        categoryId={9}
+        subcategoryId={18}
+        onSelectCategory={vi.fn()}
+        onSelectSubcategory={vi.fn()}
+        onClear={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Composite Strapping' })).toBeInTheDocument();
+  });
+
+  it('does not force a node closed again once its selection is cleared (manual toggle still works)', async () => {
+    const { rerender } = renderFilters({ categoryId: 9, subcategoryId: 18 });
+    expect(screen.getByRole('button', { name: 'Composite Strapping' })).toBeInTheDocument();
+
+    rerender(
+      <SearchFilters
+        categoryId={undefined}
+        subcategoryId={undefined}
+        onSelectCategory={vi.fn()}
+        onSelectSubcategory={vi.fn()}
+        onClear={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Composite Strapping' })).toBeInTheDocument();
+  });
+
   it('calls onSelectCategory with the node id when a top-level name is clicked', async () => {
     const onSelectCategory = vi.fn();
     renderFilters({ onSelectCategory });

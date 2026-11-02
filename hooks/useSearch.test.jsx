@@ -53,11 +53,34 @@ describe('useSearch', () => {
           sku: 'CC40/2',
           categoryName: 'CORD STRAPPING',
           subcategoryName: 'Composite Strapping',
-          categoryHref: '/category/cord-strapping',
-          subcategoryHref: '/category/cord-strapping/composite-strapping',
           href: '/product/composite-strapping/327',
         },
       ],
+    });
+  });
+
+  it('shows just the category, not a crash, when a result has no subcategory level', async () => {
+    api.get.mockResolvedValue({
+      data: {
+        count: 1,
+        rows: [
+          {
+            id: 9,
+            title: 'Department-level Product',
+            sku: null,
+            category: { id: 9, name: 'CORD STRAPPING' },
+            subcategory: null,
+          },
+        ],
+      },
+    });
+
+    const { result } = renderHook(() => useSearch('strap'), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data.results[0]).toMatchObject({
+      categoryName: 'CORD STRAPPING',
+      subcategoryName: null,
     });
   });
 

@@ -6,17 +6,18 @@ import { slugify } from '@/lib/slugify';
 
 const PAGE_SIZE = 24;
 
+// category/subcategory come from the API's real catalog_node ancestry
+// (see ESK_API's resolveBreadcrumb), not a fixed two-level hierarchy -
+// subcategory is null whenever the variant's own node IS the top-level
+// department, and in principle category can be null too (an orphaned
+// node), so neither can be dereferenced unconditionally here.
 function toSearchResult(row) {
-  const categorySlug = slugify(row.category.name);
-  const subcategorySlug = slugify(row.subcategory.name);
   return {
     id: row.id,
     title: row.title,
     sku: row.sku ?? null,
-    categoryName: row.category.name,
-    subcategoryName: row.subcategory.name,
-    categoryHref: `/category/${categorySlug}`,
-    subcategoryHref: `/category/${categorySlug}/${subcategorySlug}`,
+    categoryName: row.category?.name ?? null,
+    subcategoryName: row.subcategory?.name ?? null,
     href: `/product/${slugify(row.title)}/${row.id}`,
   };
 }

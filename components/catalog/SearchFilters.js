@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useCatalogTree } from '@/hooks/useCatalogTree';
 
@@ -14,8 +14,23 @@ function CategoryGroup({
   const children = node.children ?? [];
   const isActiveCategory = selectedCategoryId === node.id && !selectedSubcategoryId;
   const hasActiveSubcategory = children.some((child) => child.id === selectedSubcategoryId);
-  const [open, setOpen] = useState(isActiveCategory || hasActiveSubcategory);
+  const shouldBeOpen = isActiveCategory || hasActiveSubcategory;
+  const [open, setOpen] = useState(shouldBeOpen);
   const hasChildren = children.length > 0;
+
+  // The initializer above only runs once, at mount - every CategoryGroup
+  // mounts together when the tree first loads, keyed by node.id, so
+  // selecting a different category/subcategory later (via router.push,
+  // no remount) re-renders every group with new props but never
+  // reconsiders this state. Without this, a group that becomes the
+  // active one after mount stays collapsed, hiding the very filter the
+  // URL says is selected; a previously-active group that loses the
+  // selection stays stuck open. Force-opening (never force-closing)
+  // keeps the active filter visible while still letting a manual click
+  // freely expand or collapse any other group to browse.
+  useEffect(() => {
+    if (shouldBeOpen) setOpen(true);
+  }, [shouldBeOpen]);
 
   return (
     <div className="border-b border-border py-3 first:pt-0 last:border-b-0">

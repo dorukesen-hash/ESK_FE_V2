@@ -25,9 +25,9 @@ function SearchResultRow({ result }) {
         <p className="text-sm font-semibold text-text-primary">{result.title}</p>
         <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-muted">
           {result.sku && <span>SKU: {result.sku}</span>}
-          <span>
-            {result.categoryName} / {result.subcategoryName}
-          </span>
+          {(result.categoryName || result.subcategoryName) && (
+            <span>{[result.categoryName, result.subcategoryName].filter(Boolean).join(' / ')}</span>
+          )}
         </div>
       </Link>
     </li>

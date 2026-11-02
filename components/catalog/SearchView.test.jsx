@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useSearch } from '@/hooks/useSearch';
 import { useCatalogTree } from '@/hooks/useCatalogTree';
@@ -80,6 +80,31 @@ describe('SearchView', () => {
     ).toHaveAttribute('href', '/product/composite-strapping/327');
     expect(screen.getByText('SKU: CC40/2')).toBeInTheDocument();
     expect(screen.getByText('CORD STRAPPING / Composite Strapping')).toBeInTheDocument();
+  });
+
+  it('shows just the category when a result has no subcategory level', () => {
+    useSearch.mockReturnValue({
+      data: {
+        count: 1,
+        results: [
+          {
+            id: 9,
+            title: 'Department-level Product',
+            sku: null,
+            categoryName: 'CORD STRAPPING',
+            subcategoryName: null,
+            href: '/product/department-level-product/9',
+          },
+        ],
+      },
+      isLoading: false,
+      isError: false,
+    });
+    render(<SearchView />);
+
+    const resultLink = screen.getByRole('link', { name: /Department-level Product/ });
+    expect(within(resultLink).getByText('CORD STRAPPING')).toBeInTheDocument();
+    expect(within(resultLink).queryByText(/CORD STRAPPING \//)).not.toBeInTheDocument();
   });
 
   it('shows an empty-results message when nothing matches', () => {
