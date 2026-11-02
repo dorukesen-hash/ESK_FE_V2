@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -33,15 +34,62 @@ function Field({ id, label, register, error, ...props }) {
   );
 }
 
-export function AddressForm({ onSubmit, isSubmitting }) {
+export function AddressForm({ onSubmit, isSubmitting, defaultValues, addresses = [] }) {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
-  } = useForm({ resolver: yupResolver(schema) });
+  } = useForm({ resolver: yupResolver(schema), defaultValues });
+
+  // defaultValues arrives undefined on first render for a logged-in shopper
+  // (saved addresses load asynchronously) and populated moments later -
+  // react-hook-form only reads defaultValues at mount, so re-seeding here
+  // is what makes the later value actually reach the form. The caller
+  // (CheckoutView) is responsible for keeping this reference stable
+  // (useMemo) when nothing meaningful changed, or every unrelated
+  // re-render would wipe whatever the shopper had already typed.
+  useEffect(() => {
+    if (defaultValues) reset(defaultValues);
+  }, [defaultValues, reset]);
+
+  function handleSelectAddress(addressId) {
+    const selected = addresses.find((address) => address.id === addressId);
+    if (!selected) return;
+    reset({
+      firstName: defaultValues?.firstName ?? '',
+      lastName: defaultValues?.lastName ?? '',
+      email: defaultValues?.email ?? '',
+      phone: selected.phone ?? '',
+      addressLine: selected.firstline ?? '',
+      city: selected.city ?? '',
+      state: selected.state ?? '',
+      postalCode: selected.zip ?? '',
+    });
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+      {addresses.length > 1 && (
+        <div>
+          <label htmlFor="savedAddress" className="text-sm font-medium text-text-primary">
+            Saved address
+          </label>
+          <select
+            id="savedAddress"
+            defaultValue={addresses[0].id}
+            onChange={(event) => handleSelectAddress(Number(event.target.value))}
+            className={fieldClass}
+          >
+            {addresses.map((address) => (
+              <option key={address.id} value={address.id}>
+                {address.title}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-4">
         <Field id="firstName" label="First name" register={register('firstName')} error={errors.firstName} />
         <Field id="lastName" label="Last name" register={register('lastName')} error={errors.lastName} />

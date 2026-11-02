@@ -54,4 +54,53 @@ describe('AddressForm', () => {
     const button = screen.getByRole('button', { name: 'Getting shipping rates…' });
     expect(button).toBeDisabled();
   });
+
+  it('prefills fields from defaultValues', () => {
+    render(
+      <AddressForm
+        onSubmit={vi.fn()}
+        isSubmitting={false}
+        defaultValues={{
+          firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com', phone: '5551234567',
+          addressLine: '123 Main St', city: 'Dallas', state: 'TX', postalCode: '75201',
+        }}
+      />
+    );
+    expect(screen.getByLabelText('First name')).toHaveValue('Jane');
+    expect(screen.getByLabelText('Email')).toHaveValue('jane@example.com');
+    expect(screen.getByLabelText('Address')).toHaveValue('123 Main St');
+  });
+
+  it('does not render a selector for zero or one saved address', () => {
+    const { rerender } = render(<AddressForm onSubmit={vi.fn()} isSubmitting={false} addresses={[]} />);
+    expect(screen.queryByLabelText('Saved address')).not.toBeInTheDocument();
+    rerender(
+      <AddressForm
+        onSubmit={vi.fn()}
+        isSubmitting={false}
+        addresses={[{ id: 1, title: 'Warehouse', firstline: '1 Dock Rd', city: 'Dallas', state: 'TX', zip: '75201', phone: '5551234567' }]}
+      />
+    );
+    expect(screen.queryByLabelText('Saved address')).not.toBeInTheDocument();
+  });
+
+  it('switching the saved-address selector refills the address fields, keeping name/email', async () => {
+    render(
+      <AddressForm
+        onSubmit={vi.fn()}
+        isSubmitting={false}
+        defaultValues={{ firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com', phone: '', addressLine: '', city: '', state: '', postalCode: '' }}
+        addresses={[
+          { id: 1, title: 'Warehouse', firstline: '1 Dock Rd', secondline: null, city: 'Dallas', state: 'TX', zip: '75201', phone: '5551234567' },
+          { id: 2, title: 'Office', firstline: '2 Office Pkwy', secondline: null, city: 'Garland', state: 'TX', zip: '75042', phone: '5559876543' },
+        ]}
+      />
+    );
+
+    await userEvent.selectOptions(screen.getByLabelText('Saved address'), '2');
+
+    expect(screen.getByLabelText('Address')).toHaveValue('2 Office Pkwy');
+    expect(screen.getByLabelText('City')).toHaveValue('Garland');
+    expect(screen.getByLabelText('First name')).toHaveValue('Jane');
+  });
 });
