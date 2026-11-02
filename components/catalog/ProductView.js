@@ -105,6 +105,20 @@ export function ProductView({ variantId }) {
     <main className="mx-auto max-w-6xl px-6 py-10 pb-24 lg:pb-0">
       <Breadcrumbs items={breadcrumbItems} />
 
+      {/*
+        A plain two-column grid, nothing fancier: the left column holds
+        the image AND specs/description/bullets together as one block,
+        so it's naturally much taller than the right column once there's
+        any real spec content - that height difference is what gives the
+        right column's sticky position real travel. No grid-row-span,
+        no explicit row/col placement: those were a leftover from when
+        specs still lived in the right column (making it as tall as the
+        row itself, with nowhere to stick) - now that specs moved to the
+        left column, the simplest possible two-column layout already
+        produces the right behavior on its own, and anything more was
+        just adding surface area for a cross-browser sticky+grid bug
+        with no actual benefit.
+      */}
       <div className="mt-6 grid gap-8 lg:grid-cols-2">
         <div>
           <div className="relative aspect-square overflow-hidden rounded-lg bg-button-secondary-bg">
@@ -136,57 +150,6 @@ export function ProductView({ variantId }) {
               ))}
             </div>
           )}
-        </div>
-
-        <div data-testid="product-info-column">
-          <div data-testid="product-buy-box" className="lg:sticky lg:top-32 lg:self-start">
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
-              {ancestors[0]?.name ?? node?.name ?? 'Product'}
-            </p>
-            <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary md:text-3xl">
-              {variant.title}
-            </h1>
-            {variant.sku && (
-              <p className="mt-1 text-sm text-text-muted">SKU: {variant.sku}</p>
-            )}
-
-            <PriceTiers tiers={variant.priceTiers} />
-
-            <div className="mt-6 flex flex-wrap items-end gap-4">
-              <div>
-                <label htmlFor="quantity" className="text-sm font-medium text-text-primary">
-                  Quantity
-                </label>
-                <QuantityInput
-                  id="quantity"
-                  value={quantity}
-                  onChange={setQuantity}
-                  className="mt-1 w-24 rounded-md border border-border px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-
-              {hasPalletPrice && (
-                <label className="flex items-center gap-2 pb-2 text-sm text-text-primary">
-                  <input
-                    type="checkbox"
-                    checked={isPallet}
-                    onChange={(event) => setIsPallet(event.target.checked)}
-                    className="h-4 w-4 accent-accent"
-                  />
-                  Order by full pallet
-                </label>
-              )}
-            </div>
-
-            <button
-              ref={addToCartButtonRef}
-              type="button"
-              onClick={handleAddToCart}
-              className="mt-6 inline-flex h-12 items-center rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
-            >
-              Add to Cart
-            </button>
-          </div>
 
           {variant.specs.length > 0 && (
             <div className="mt-8 space-y-6">
@@ -225,6 +188,58 @@ export function ProductView({ variantId }) {
               ))}
             </ul>
           )}
+        </div>
+
+        <div
+          data-testid="product-buy-box"
+          className="helper-sticky-under-breadcrumbs lg:self-start lg:pt-6"
+        >
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">
+            {ancestors[0]?.name ?? node?.name ?? 'Product'}
+          </p>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary md:text-3xl">
+            {variant.title}
+          </h1>
+          {variant.sku && (
+            <p className="mt-1 text-sm text-text-muted">SKU: {variant.sku}</p>
+          )}
+
+          <PriceTiers tiers={variant.priceTiers} />
+
+          <div className="mt-6 flex flex-wrap items-end gap-4">
+            <div>
+              <label htmlFor="quantity" className="text-sm font-medium text-text-primary">
+                Quantity
+              </label>
+              <QuantityInput
+                id="quantity"
+                value={quantity}
+                onChange={setQuantity}
+                className="mt-1 w-24 rounded-md border border-border px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            {hasPalletPrice && (
+              <label className="flex items-center gap-2 pb-2 text-sm text-text-primary">
+                <input
+                  type="checkbox"
+                  checked={isPallet}
+                  onChange={(event) => setIsPallet(event.target.checked)}
+                  className="h-4 w-4 accent-accent"
+                />
+                Order by full pallet
+              </label>
+            )}
+          </div>
+
+          <button
+            ref={addToCartButtonRef}
+            type="button"
+            onClick={handleAddToCart}
+            className="mt-6 inline-flex h-12 items-center rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
+          >
+            Add to Cart
+          </button>
         </div>
       </div>
     </main>

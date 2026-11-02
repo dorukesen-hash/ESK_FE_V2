@@ -192,12 +192,27 @@ describe('ProductView', () => {
     render(<ProductView variantId="327" />);
 
     const buyBox = screen.getByTestId('product-buy-box');
-    expect(buyBox).toHaveClass('lg:sticky', 'lg:top-32', 'lg:self-start');
+    expect(buyBox).toHaveClass('helper-sticky-under-breadcrumbs', 'lg:self-start');
 
-    const infoColumn = buyBox.parentElement;
-    const grid = infoColumn.parentElement;
-    expect(infoColumn.className).not.toMatch(/lg:sticky/);
-    expect(grid.className).not.toMatch(/lg:sticky/);
+    const grid = buyBox.parentElement;
+    expect(grid.className).not.toMatch(/sticky/);
+  });
+
+  it('keeps the image and the spec/description/bullets block together in the left column, not inside the sticky buy box', () => {
+    useVariant.mockReturnValue({ data: baseVariant, isLoading: false, isError: false });
+    render(<ProductView variantId="327" />);
+
+    const buyBox = screen.getByTestId('product-buy-box');
+    const specHeading = screen.getByText('Material & Performance');
+    const image = screen.getByRole('img', { name: 'Composite Strapping' });
+
+    expect(buyBox.contains(specHeading)).toBe(false);
+    expect(buyBox.contains(image)).toBe(false);
+
+    const grid = buyBox.parentElement;
+    const leftColumn = grid.firstElementChild;
+    expect(leftColumn.contains(specHeading)).toBe(true);
+    expect(leftColumn.contains(image)).toBe(true);
   });
 
   it('renders the spec groups above the description and the bullets', () => {
