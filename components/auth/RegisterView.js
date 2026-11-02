@@ -5,7 +5,10 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useRegister } from '@/hooks/useRegister';
+import { useLogin } from '@/hooks/useLogin';
+import { useAuthStore } from '@/stores/authStore';
 import { AuthShell } from './AuthShell';
 import { AuthDivider } from './AuthDivider';
 import { GoogleLoginButton } from './GoogleLoginButton';
@@ -24,9 +27,11 @@ const fieldClass =
   'mt-1 w-full rounded-md border border-border px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary';
 
 export function RegisterView() {
+  const router = useRouter();
   const registerMutation = useRegister();
+  const loginMutation = useLogin();
+  const setUser = useAuthStore((state) => state.setUser);
   const [serverError, setServerError] = useState(null);
-  const [isRegistered, setIsRegistered] = useState(false);
   const {
     register,
     handleSubmit,
@@ -37,38 +42,23 @@ export function RegisterView() {
     setServerError(null);
     try {
       await registerMutation.mutateAsync(values);
-      setIsRegistered(true);
+      // The registration endpoint only creates the account - it doesn't set
+      // a session (ESK_API's POST /auth/register returns a bare message,
+      // no cookies). Logging in immediately with the credentials the user
+      // just typed, rather than sending them to /login to retype them,
+      // matches how every other account-creation flow in this app treats
+      // "created" as "signed in."
+      const user = await loginMutation.mutateAsync({
+        email: values.email,
+        password: values.password,
+      });
+      setUser(user);
+      router.push('/account');
     } catch (error) {
       setServerError(
         error?.response?.data?.message ?? 'Registration failed. Please try again.'
       );
     }
-  }
-
-  if (isRegistered) {
-    return (
-      <AuthShell
-        image="/hero-product-range.webp"
-        alt="ESK Packaging product range: branded tape, corrugated boxes, strapping coils, stretch film and dispenser carts"
-        kicker="Full Product Range"
-        heading="Everything your warehouse needs, in one order"
-        subtitle="Boxes, tape, film and equipment, stocked and ready to ship."
-      >
-        <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Account</p>
-        <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary">
-          Account created
-        </h1>
-        <p className="mt-2 text-text-muted">
-          You can now log in with your new account.
-        </p>
-        <Link
-          href="/login"
-          className="mt-6 inline-flex h-12 items-center rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
-        >
-          Go to Login
-        </Link>
-      </AuthShell>
-    );
   }
 
   return (
@@ -139,10 +129,12 @@ export function RegisterView() {
 
         <button
           type="submit"
-          disabled={registerMutation.isPending}
+          disabled={registerMutation.isPending || loginMutation.isPending}
           className="inline-flex h-12 w-full items-center justify-center rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover disabled:opacity-50"
         >
-          {registerMutation.isPending ? 'Creating account…' : 'Create Account'}
+          {registerMutation.isPending || loginMutation.isPending
+            ? 'Creating account…'
+            : 'Create Account'}
         </button>
       </form>
 
