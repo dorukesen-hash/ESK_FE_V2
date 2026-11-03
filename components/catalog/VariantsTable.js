@@ -69,25 +69,33 @@ function VariantRow({ row, href, isCurrent, visibleFields, gridTemplateColumns }
   const rowClass = isCurrent ? 'bg-accent-tint' : '';
 
   return (
-    <div className={`border-b border-border py-3 last:border-b-0 sm:py-2 ${rowClass}`}>
-      {/* Desktop/tablet: one grid row */}
-      <div className="hidden items-center gap-3 px-3 sm:grid" style={{ gridTemplateColumns }}>
-        <div className="min-w-0">
+    <div className={`border-b border-border py-3 last:border-b-0 sm:py-0 ${rowClass}`}>
+      {/* Desktop/tablet: one grid row. divide-x gives each column a visible
+          vertical rule (reference: a plain-table look), so the row's cells
+          need their own horizontal padding instead of relying on the
+          row-level gap alone. */}
+      <div
+        className="hidden items-stretch divide-x divide-border sm:grid"
+        style={{ gridTemplateColumns }}
+      >
+        <div className="flex min-w-0 flex-col justify-center px-3 py-2">
           <Link
             href={href}
-            className="truncate text-sm font-medium text-text-primary hover:text-primary"
+            className="block text-sm font-medium text-text-primary hover:text-primary"
           >
             {row.title}
           </Link>
           {row.sku && <p className="truncate text-xs text-text-muted">SKU: {row.sku}</p>}
         </div>
         {visibleFields.map((field) => (
-          <p key={field.key} className="truncate text-sm text-text-muted">
+          <p key={field.key} className="flex items-center px-3 py-2 text-sm text-text-muted">
             {row.specValues[field.key] ?? '—'}
           </p>
         ))}
-        <PriceTiers tiers={row.priceTiers} />
-        <div>
+        <div className="flex items-center px-3 py-2">
+          <PriceTiers tiers={row.priceTiers} />
+        </div>
+        <div className="flex items-center px-3 py-2">
           <label htmlFor={qtyFieldId} className="sr-only">
             Quantity for {row.title}
           </label>
@@ -98,14 +106,16 @@ function VariantRow({ row, href, isCurrent, visibleFields, gridTemplateColumns }
             className="h-9 w-full max-w-20 rounded-md border border-border px-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          aria-label={`Add ${row.title} to cart`}
-          onClick={handleAdd}
-        >
-          Add
-        </Button>
+        <div className="flex items-center px-3 py-2">
+          <Button
+            type="button"
+            variant="outline"
+            aria-label={`Add ${row.title} to cart`}
+            onClick={handleAdd}
+          >
+            Add
+          </Button>
+        </div>
       </div>
 
       {/* Mobile: stacked card */}
@@ -164,22 +174,24 @@ export function VariantsTable({ variants, currentVariantId, productSlug, display
   const visibleFields = pickDisplayFields(rows, displayFields);
   const hasMore = !showAll && rows.length > PREVIEW_LIMIT;
   const visibleRows = showAll ? rows : rows.slice(0, PREVIEW_LIMIT);
-  const gridTemplateColumns = `minmax(0,1.6fr) ${visibleFields
+  const gridTemplateColumns = `minmax(0,2.4fr) ${visibleFields
     .map(() => 'minmax(0,1fr)')
     .join(' ')} 150px 88px 84px`;
 
   return (
     <div className="rounded-lg border border-border">
       <div
-        className="hidden items-center gap-3 border-b border-border px-3 py-2 text-xs font-semibold uppercase tracking-wide text-text-muted sm:grid"
+        className="hidden items-center divide-x divide-border border-b border-border bg-accent-tint text-xs font-semibold uppercase tracking-wide text-text-muted sm:grid"
         style={{ gridTemplateColumns }}
       >
-        <span>Variant</span>
+        <span className="px-3 py-2">Variant</span>
         {visibleFields.map((field) => (
-          <span key={field.key}>{field.label}</span>
+          <span key={field.key} className="px-3 py-2">
+            {field.label}
+          </span>
         ))}
-        <span>Price</span>
-        <span>Qty</span>
+        <span className="px-3 py-2">Price</span>
+        <span className="px-3 py-2">Qty</span>
         <span />
       </div>
 

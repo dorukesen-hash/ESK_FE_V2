@@ -60,7 +60,7 @@ export function CatalogNodeView({ path }) {
 
   if (isLoading) {
     return (
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-[1600px] px-6 py-10">
         <div className="mt-6 grid gap-8 lg:grid-cols-[200px_1fr]">
           <div className="hidden lg:block" />
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
@@ -78,7 +78,7 @@ export function CatalogNodeView({ path }) {
 
   if (isError || !tree || !node) {
     return (
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-[1600px] px-6 py-10">
         <p className="text-text-muted">We couldn&apos;t find that category.</p>
         <Link href="/search" className="mt-2 inline-block text-primary hover:text-primary-hover">
           Browse all products
@@ -101,7 +101,7 @@ export function CatalogNodeView({ path }) {
   const variants = node.variants ?? [];
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
+    <main className="mx-auto max-w-[1600px] px-6 py-10">
       <Breadcrumbs items={breadcrumbItems} />
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[200px_1fr]">
